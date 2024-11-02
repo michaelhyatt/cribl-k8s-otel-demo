@@ -1,3 +1,4 @@
+# Expose OTel listener ports on each k8s node to collect OTel traffic locally
 service:
   enable: true
   type: NodePort

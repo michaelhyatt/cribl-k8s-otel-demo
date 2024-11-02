@@ -1,0 +1,16 @@
+service:
+  ports:
+  - name: criblhttp
+    port: 10200
+    protocol: TCP
+  - name: cribltcp
+    port: 10300
+    protocol: TCP
+
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 50
+  behavior: {}
