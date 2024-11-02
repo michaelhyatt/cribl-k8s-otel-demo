@@ -11,7 +11,11 @@ helm repo add cribl https://criblio.github.io/helm-charts/
 ```
 #### Deploy Cribl Edge as DaemonSet
 ```
-helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" --create-namespace -n "cribl" --set "cribl.leader=tls://<token>@<leader-url>?group=<fleet>" "cribl-edge" edge
+helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" --create-namespace -n "cribl" \
+--set "cribl.leader=tls://<token>@<leader-url>?group=<fleet>" \
+--set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
+--values cribl/edge/values.yaml \
+"cribl-edge" edge
 ```
 ### Deploy otel-demo app
 #### Deploy using `kubectl`:
