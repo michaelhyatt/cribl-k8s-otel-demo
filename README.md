@@ -1,38 +1,40 @@
 # Kubernetes and application observability demo with Cribl
 
 ## Prerequisites
-### K8s cluster
-    *  `kind create cluster --config kind/kind-cluster-config.yaml --name cluster`
-    * `kubectl cluster-info --context kind-cluster`
 ### `kubectl`
+```
+brew install kubectl
+```
+
+### K8s cluster
+I used docker-desktop inbuilt k8s cluster, will work with `minikube` as well, or you can use `kind` if you want to simulate a multi-node cluster locally.
+#### kind
+https://kind.sigs.k8s.io/
+Install:
+```
+brew install kind
+```
+Create cluster:
+```
+kind create cluster --config kind/kind-cluster-config.yaml --name cluster`
+kubectl cluster-info --context kind-cluster
+```
 
 ### Helm
+```
+brew install helm
+```
 
 ### Ngrok
-Reverse tunneling into local k8s cluster
+TODO: Reverse tunneling into local k8s cluster
 
 ## Setup
 ### Deploy Cribl components
-Add Cribl Helm repo chart:
+1. Add Cribl Helm repo chart:
 ```
 helm repo add cribl https://criblio.github.io/helm-charts/
 ```
-
-#### Deploy Cribl Edge as DaemonSet
-```
-helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.0" --create-namespace -n "cribl" \
---set "cribl.leader=tls://<token>@<leader-url>?group=<fleet>" \
---set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
---values cribl/edge/values.yaml \
-"cribl-edge" edge
-```
-
-#### Configure Cribl Edge
-OTel receivers
-Routing to Stream Cribl TCP
-Sending OTel data to local Elastic cluster
-Sending Prometheus metrics to local Elastic cluster
-Sending logs to local Elastic cluster
+2. Create a worker group `otel-demo-k8s-wg`
 
 #### Deploy Cribl Stream worker
 ```
@@ -47,9 +49,34 @@ helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.0" 
 ```
 
 #### Configure Cribl Stream
-Receive Cribl TCP traffic
-Forward it to Lake
-Receive Cribl HTTP traffic for replays
+* Receive Cribl TCP traffic
+    * hostname 0.0.0.0 port 10300
+
+#### Deploy Cribl Edge as DaemonSet
+```
+helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.0" --create-namespace -n "cribl" \
+--set "cribl.leader=tls://<token>@<leader-url>?group=<fleet>" \
+--set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
+--values cribl/edge/values.yaml \
+"cribl-edge" edge
+```
+
+#### Configure Cribl Edge
+* Create fleet otel-demo-k8s-fleet
+* Create 2 OTel sources, grpc and http, version 1.3.1:
+    * hostname: 0.0.0.0, grpc on port 4317, http on port 4318
+
+* Route both to Stream Cribl TCP destination
+    * Address `cribl-worker-logstream-workergroup`, port 10300 
+
+TODO:
+* Sending OTel data to local Elastic cluster
+* Sending Prometheus metrics to local Elastic cluster
+* Sending logs to local Elastic cluster
+
+TODO:
+* Forward it to Lake
+* Receive Cribl HTTP traffic for replays
 
 ### Deploy otel-demo app
 #### Deploy using `kubectl`:
@@ -57,10 +84,14 @@ Receive Cribl HTTP traffic for replays
 kubectl apply --namespace otel-demo -f otel-demo/opentelemetry-demo.yaml
 ```
 
-#### Forward the port locally, if using local k8s cluster, such as minikube:
+#### Forward the 8080 port 
+To access the app and the loadgen
 ```
 kubectl port-forward svc/my-otel-demo-frontendproxy 8080:8080
 ```
+App: http://localhost:8080/
+
+Loadgen: http://localhost:8080/loadgen/
 
 ### Deploy Elastic cluster
 #### Install ECK operator
