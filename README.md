@@ -38,7 +38,7 @@ helm repo add cribl https://criblio.github.io/helm-charts/
 
 #### Deploy Cribl Stream worker
 ```
-helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.0" --create-namespace -n "cribl" \
+helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" --create-namespace -n "cribl" \
 --set "config.host=<leader-url>" \
 --set "config.token=<token>" \
 --set "config.group=<worker-group-name>" \
@@ -54,7 +54,7 @@ helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.0" 
 
 #### Deploy Cribl Edge as DaemonSet
 ```
-helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.0" --create-namespace -n "cribl" \
+helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" --create-namespace -n "cribl" \
 --set "cribl.leader=tls://<token>@<leader-url>?group=<fleet>" \
 --set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
 --values cribl/edge/values.yaml \
@@ -97,6 +97,12 @@ App: http://localhost:8080/
 
 Loadgen: http://localhost:8080/loadgen/
 
+#### Forward the 5601 port to access Kibana
+```
+kubectl port-forward svc/my-otel-demo-frontendproxy 5601:5601
+```
+Kibana: http://localhost:5601
+
 ### Deploy Elastic cluster
 #### Install ECK operator
 ```
@@ -120,11 +126,30 @@ kubectl apply -n elastic -f elastic/elastic.yaml
 kubectl get secret -n elastic es-es-elastic-user -o go-template='{{.data.elastic | base64decode}}'
 ```
 
-#### Retrieve the token to connect to the APM server
-```
-kubectl get secret -n elastic apm-apm-token -o go-template='{{index .data "secret-token" | base64decode}}'
-```
-
 ### Deploy ngrok agent
 
-## Misc actions
+Using helm, add the ngrok repo:
+```
+helm repo add ngrok https://charts.ngrok.com
+```
+
+Set your environment variables with your ngrok credentials. Replace [AUTHTOKEN] and [API_KEY] with your Authtoken and API key from above.
+```
+export NGROK_AUTHTOKEN=[AUTHTOKEN]
+export NGROK_API_KEY=[API_KEY]
+```
+
+Install the ngrok Kubernetes Operator in your cluster, replacing [AUTHTOKEN] and [API_KEY] with your Authtoken and API key from above:
+
+```
+helm install ngrok-ingress-controller ngrok/kubernetes-ingress-controller \
+  --namespace ngrok-ingress-controller \
+  --create-namespace \
+  --set credentials.apiKey=$NGROK_API_KEY \
+  --set credentials.authtoken=$NGROK_AUTHTOKEN
+```
+
+Apply the manifest file to your k8s cluster.
+```
+kubectl apply -f ngrok/ngrok-manifest.yaml
+```

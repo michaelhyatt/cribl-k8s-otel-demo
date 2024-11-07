@@ -1,0 +1,19 @@
+# ngrok Kubernetes Operator Configuration
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-http-ingress
+  namespace: elastic
+spec:
+  ingressClassName: ngrok
+  rules:
+    - host: silkworm-shining-instantly.ngrok-free.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kibana-kb-http
+                port:
+                  number: 5601
