@@ -69,9 +69,13 @@ helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.0" 
 * Route both to Stream Cribl TCP destination
     * Address `cribl-worker-logstream-workergroup`, port 10300 
 
-TODO:
 * Sending OTel data to local Elastic cluster
+    * Create an OTel destination, address `http://apm.elastic.svc.cluster.local:8200`, OTel version 1.3.1, TLS off
+
 * Sending Prometheus metrics to local Elastic cluster
+    * Create a Prometheus destination, address `http://prometheus.elastic.svc.cluster.local:9201`, authentication None, CErtificate validation off
+
+TODO:
 * Sending logs to local Elastic cluster
 
 TODO:
