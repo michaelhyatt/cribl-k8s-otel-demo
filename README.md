@@ -149,6 +149,8 @@ helm install ngrok-ingress-controller ngrok/kubernetes-ingress-controller \
   --set credentials.authtoken=$NGROK_AUTHTOKEN
 ```
 
+Create a domain in ngrok and update its name in `ngrok/ngrok-manifest.yaml`
+
 Apply the manifest file to your k8s cluster.
 ```
 kubectl apply -f ngrok/ngrok-manifest.yaml
