@@ -2,8 +2,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: kibana-http-ingress
-  namespace: elastic
+  name: frontendproxy-http-ingress
+  namespace: otel-demo
 spec:
   ingressClassName: ngrok
   rules:
@@ -14,6 +14,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: kibana-kb-http
+                name: opentelemetry-demo-frontendproxy
                 port:
-                  number: 5601
+                  number: 8080
