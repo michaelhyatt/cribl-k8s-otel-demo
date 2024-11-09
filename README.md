@@ -1,5 +1,8 @@
 # Kubernetes and application observability demo with Cribl
 
+## Diagram
+![diagram](images/image.png)
+
 ## Prerequisites
 ### `kubectl`
 ```
