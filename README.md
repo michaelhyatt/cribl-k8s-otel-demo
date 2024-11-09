@@ -28,9 +28,6 @@ kubectl cluster-info --context kind-cluster
 brew install helm
 ```
 
-### Ngrok
-TODO: Reverse tunneling into local k8s cluster
-
 ## Setup
 ### Deploy Cribl components
 1. Add Cribl Helm repo chart:
