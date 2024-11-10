@@ -1,7 +1,7 @@
 # Kubernetes and application observability demo with Cribl
 
 ## Diagram
-![diagram](images/image.png)
+![diagram](images/k8s-o11y-demo.png)
 
 ## Prerequisites
 ### `kubectl`
@@ -53,7 +53,7 @@ helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" 
     * hostname 0.0.0.0 port 10300
 * Receive Cribl HTTP traffic
     * hostname 0.0.0.0 port 10200
-    
+
 #### Deploy Cribl Edge as DaemonSet
 ```
 helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" --create-namespace -n "cribl" \
