@@ -51,7 +51,9 @@ helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" 
 #### Configure Cribl Stream
 * Receive Cribl TCP traffic
     * hostname 0.0.0.0 port 10300
-
+* Receive Cribl HTTP traffic
+    * hostname 0.0.0.0 port 10200
+    
 #### Deploy Cribl Edge as DaemonSet
 ```
 helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" --create-namespace -n "cribl" \
@@ -80,7 +82,7 @@ TODO:
 
 TODO:
 * Forward it to Lake
-* Receive Cribl HTTP traffic for replays
+* Receive Cribl HTTP traffic for replays and forwward it to Elastic OTel
 
 ### Deploy otel-demo app
 #### Deploy using `kubectl`:
