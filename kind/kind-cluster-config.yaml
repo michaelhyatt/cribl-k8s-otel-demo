@@ -26,6 +26,3 @@ nodes:
   # the two workers
   - role: worker
   - role: worker
-  - role: worker
-  - role: worker
-  - role: worker
