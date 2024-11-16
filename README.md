@@ -135,13 +135,13 @@ Using helm, add the ngrok repo:
 helm repo add ngrok https://charts.ngrok.com
 ```
 
-Set your environment variables with your ngrok credentials. Replace [AUTHTOKEN] and [API_KEY] with your Authtoken and API key from above.
+Set your environment variables with your ngrok credentials. Replace [AUTHTOKEN] and [API_KEY] with your Authtoken and API key.
 ```
 export NGROK_AUTHTOKEN=[AUTHTOKEN]
 export NGROK_API_KEY=[API_KEY]
 ```
 
-Install the ngrok Kubernetes Operator in your cluster, replacing [AUTHTOKEN] and [API_KEY] with your Authtoken and API key from above:
+Install the ngrok Kubernetes Operator in your cluster, replacing [AUTHTOKEN] and [API_KEY] with your Authtoken and API key:
 
 ```
 helm install ngrok-ingress-controller ngrok/kubernetes-ingress-controller \
