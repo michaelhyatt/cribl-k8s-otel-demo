@@ -108,8 +108,8 @@ Kibana: http://localhost:5601
 ### Deploy Elastic cluster
 #### Install ECK operator
 ```
-kubectl create -f https://download.elastic.co/downloads/eck/2.14.0/crds.yaml
-kubectl apply -f https://download.elastic.co/downloads/eck/2.14.0/operator.yaml
+kubectl create -f https://download.elastic.co/downloads/eck/2.15.0/crds.yaml
+kubectl apply -f https://download.elastic.co/downloads/eck/2.15.0/operator.yaml
 ```
 
 #### Monitor the operator logs
