@@ -117,6 +117,12 @@ kubectl apply -f https://download.elastic.co/downloads/eck/2.14.0/operator.yaml
 kubectl -n elastic-system logs -f statefulset.apps/elastic-operator
 ```
 
+#### Optional: enable enterprise trial license
+Can activate the trial of some of the premium features, such as anomaly detection and service map.
+```
+kubectl apply -n elastic-system -f elastic/license.yaml 
+```
+
 #### Create `elastic` namespace and deploy Elastic stack
 ```
 kubectl create ns elastic
