@@ -22,7 +22,9 @@ kubeadmConfigPatchesJSON6902:
 nodes:
 # the control plane node config
   - role: control-plane
+  - role: control-plane
   # - role: control-plane
   # the two workers
+  - role: worker
   - role: worker
   - role: worker
