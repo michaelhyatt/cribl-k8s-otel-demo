@@ -38,10 +38,10 @@ helm repo add cribl https://criblio.github.io/helm-charts/
 
 #### Deploy Cribl Stream worker
 ```
-helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" --create-namespace -n "cribl" \
+helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.2" --create-namespace -n "cribl" \
 --set "config.host=<leader-url>" \
 --set "config.token=<token>" \
---set "config.group=<worker-group-name>" \
+--set "config.group=otel-demo-k8s-wg" \
 --set "config.tlsLeader.enable=true"  \
 --set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
 --values cribl/stream/values.yaml \
@@ -53,15 +53,6 @@ helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" 
     * hostname 0.0.0.0 port 10300
 * Receive Cribl HTTP traffic
     * hostname 0.0.0.0 port 10200
-
-#### Deploy Cribl Edge as DaemonSet
-```
-helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" --create-namespace -n "cribl" \
---set "cribl.leader=tls://<token>@<leader-url>?group=<fleet>" \
---set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
---values cribl/edge/values.yaml \
-"cribl-edge" edge
-```
 
 #### Configure Cribl Edge
 * Create fleet otel-demo-k8s-fleet
@@ -75,7 +66,7 @@ helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.1" 
     * Create an OTel destination, address `http://apm.elastic.svc.cluster.local:8200`, OTel version 1.3.1, TLS off
 
 * Sending Prometheus metrics to local Elastic cluster
-    * Create a Prometheus destination, address `http://prometheus.elastic.svc.cluster.local:9201`, authentication None, CErtificate validation off
+    * Create a Prometheus destination, address `http://prometheus.elastic.svc.cluster.local:9201`, authentication None, Certificate validation off
 
 TODO:
 * Sending logs to local Elastic cluster
@@ -83,6 +74,15 @@ TODO:
 TODO:
 * Forward it to Lake
 * Receive Cribl HTTP traffic for replays and forwward it to Elastic OTel
+
+#### Deploy Cribl Edge as DaemonSet
+```
+helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.2" --create-namespace -n "cribl" \
+--set "cribl.leader=tls://<token>@<leader-url>?group=otel-demo-k8s-fleet" \
+--set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
+--values cribl/edge/values.yaml \
+"cribl-edge" edge
+```
 
 ### Deploy otel-demo app
 #### Deploy using `kubectl`:
