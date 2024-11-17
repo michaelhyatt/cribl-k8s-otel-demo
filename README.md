@@ -44,6 +44,7 @@ helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.2" 
 --set "config.group=otel-demo-k8s-wg" \
 --set "config.tlsLeader.enable=true"  \
 --set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
+--set "env.CRIBL_MAX_WORKERS=4" \
 --values cribl/stream/values.yaml \
 "cribl-worker" logstream-workergroup
 ```
