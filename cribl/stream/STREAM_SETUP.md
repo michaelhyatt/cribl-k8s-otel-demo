@@ -3,7 +3,7 @@
 ## Overall design
 ![Diagram](../../images/stream-setup.png)
 
-## Create the worker group `otel-demo-k8s-wg`
+## Create hybrid worker group `otel-demo-k8s-wg`
 
 ## Copy the leader URL and token from `Kubernetes worker setup` dialog
 ![diagram](../../images/add-stream-worker.png)
@@ -11,10 +11,10 @@
 ## Deploy Cribl Stream worker
 Set the variables:
 ```bash
-export CRIBL_STREAM_TOKEN=<token>
-export CRIBL_STREAM_LEADER_URL=<leader-url>
 export CRIBL_STREAM_VERSION=4.9.3
 export CRIBL_STREAM_WORKER_GROUP=otel-demo-k8s-wg
+export CRIBL_STREAM_TOKEN=<token>
+export CRIBL_STREAM_LEADER_URL=<leader-url>
 ```
 Run the `helm install`
 ```bash
@@ -28,7 +28,7 @@ helm install --repo "https://criblio.github.io/helm-charts/" --version "^${CRIBL
 --values cribl/stream/values.yaml \
 "cribl-worker" logstream-workergroup
 ```
-
+Check the new worker appear in the UI.
 
 # Set up the worker group
 
@@ -225,6 +225,43 @@ You can copy the below JSON or create them manually.
 ```
 </details>
 
+## Create an Output Router destination to send data to Lake
+This router uses the above Lake destinations to simplify the routes config. Copy and paste the JSON below into a new Router destination
+<details>
+<summary>otel-router-to-lake JSON</summary>
+
+```json
+{
+  "id": "otel-router-to-lake",
+  "systemFields": [
+    "cribl_pipe"
+  ],
+  "streamtags": [],
+  "rules": [
+    {
+      "final": true,
+      "filter": "__otlp.type == 'traces'",
+      "output": "otel-traces",
+      "description": "Otel traces to Lake"
+    },
+    {
+      "final": true,
+      "filter": "__otlp.type == 'logs'",
+      "output": "otel-logs",
+      "description": "Otel logs to Lake"
+    },
+    {
+      "final": true,
+      "filter": "__otlp.type == 'metrics'",
+      "output": "otel-metrics",
+      "description": "Otel metrics to Lake"
+    }
+  ],
+  "type": "router"
+}
+```
+</details>
+
 ## Create Prometheus destination
 Remote Write URL: `http://prometheus.elastic.svc.cluster.local:9201`
 <details>
@@ -297,7 +334,7 @@ endpoint (no http://): `apm.elastic.svc.cluster.local:8200`
 </details>
 
 ## Install `cribl-opentelemetry` pack from Dispensary
-It is used to translate OTel traces into metrics
+It is used to translate OTel traces into metrics. Change the filter on the `traces_to_metrics` route in the pack from `__inputId.startsWith('open_telemetry')` to `true`.
 
 ## Create `metrics-to-elastic` pipeline
 Create the `metrics-to-elastic` pipeline and copy the following JSON.

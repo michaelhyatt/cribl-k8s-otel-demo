@@ -1,5 +1,5 @@
 # Configure Cribl Edge
-## Create fleet `otel-demo-k8s`
+## Create fleet `otel-demo-k8s-fleet`
 
 ## Copy the leader URL
 ![Diagram](../../images/add-edge-daemonset.png)
@@ -7,10 +7,10 @@
 ## Deploy Cribl Edge DaemonSet
 Set the variables:
 ```bash
+export CRIBL_EDGE_VERSION=4.9.3
+export CRIBL_EDGE_FLEET=otel-demo-k8s-fleet
 export CRIBL_EDGE_LEADER_URL=<leader-url>
 export CRIBL_EDGE_TOKEN=<token>
-export CRIBL_EDGE_VERSION=4.9.3
-export CRIBL_EDGE_FLEET=otel-demo-k8s
 ```
 Run the `helm install`
 ```bash
