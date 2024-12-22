@@ -1,4 +1,7 @@
 # Prerequisites
+
+## Make sure you have your own Cribl.Cloud
+
 ## `kubectl`
 ```
 brew install kubectl
@@ -6,7 +9,7 @@ brew install kubectl
 
 ## K8s cluster
 I used docker-desktop inbuilt k8s cluster, will work with `minikube` as well, or you can use `kind` if you want to simulate a multi-node cluster locally.
-## kind
+### `kind`
 https://kind.sigs.k8s.io/
 Install:
 ```
@@ -31,3 +34,8 @@ helm repo add ngrok https://charts.ngrok.com
 
 ## Sign up for ngrok free tier 
 https://dashboard.ngrok.com/login
+
+## Cleanup
+```
+kind delete cluster --name cluster 
+```
