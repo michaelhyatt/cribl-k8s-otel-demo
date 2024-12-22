@@ -9,6 +9,7 @@
 * Sign up for ngrok free tier: https://dashboard.ngrok.com/login
 
 ## Setup
+* [Create a `kind` k8s cluster](./kind/SETUP_KIND.md)
 * [Deploy Cribl Stream components](./cribl/stream/STREAM_SETUP.md)
 * [Deploy Cribl Edge components](./cribl/edge/EDGE_SETUP.md)
 * [Deploy the Elastic stack](./elastic/ELASTIC_SETUP.md)
