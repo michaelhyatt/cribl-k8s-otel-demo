@@ -1,6 +1,7 @@
 # Kubernetes and application observability demo with Cribl
 
 ## [Prerequisites](./PREREQUISITES.md)
+* Cribl.Cloud. You know, for Search, Lake, Stream and Edge.
 * `kubectl`
 * `kind`
 * `helm`
