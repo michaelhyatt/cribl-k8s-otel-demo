@@ -24,6 +24,7 @@ kubectl apply -n elastic -f elastic/elastic.yaml
 ```
 
 ## Load `RED Metrics` dashboard
+Wait for the main Elastic stack to come up. It is a good point to check if the OTel and Prometheus Stream destinations are up when Elastic Agent is up.
 ```
 kubectl apply -f elastic/add_dashboard.yml
 ```
