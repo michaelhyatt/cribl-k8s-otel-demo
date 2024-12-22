@@ -7,6 +7,8 @@ helm repo add ngrok https://charts.ngrok.com
 
 ## Set your environment variables with your ngrok credentials. 
 Replace [AUTHTOKEN] and [API_KEY] with your Authtoken and API key.
+* Auth token: https://dashboard.ngrok.com/get-started/your-authtoken
+* API keys: https://dashboard.ngrok.com/api-keys
 ```bash
 export NGROK_AUTHTOKEN=[AUTHTOKEN]
 export NGROK_API_KEY=[API_KEY]
