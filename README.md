@@ -9,6 +9,7 @@
 * Sign up for ngrok free tier: https://dashboard.ngrok.com/login
 
 ## Setup
+The Cribl.Cloud part of the setup only needs to be done once for the Lake datasets, Edge fleet and Stream Worker Group.
 * [Create a `kind` k8s cluster](./kind/SETUP_KIND.md)
 * [Deploy Cribl Stream components](./cribl/stream/STREAM_SETUP.md)
 * [Deploy Cribl Edge components](./cribl/edge/EDGE_SETUP.md)
