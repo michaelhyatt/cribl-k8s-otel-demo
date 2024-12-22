@@ -9,8 +9,8 @@
 ## Setup
 * [Deploy Cribl Stream components](./cribl/stream/STREAM_SETUP.md)
 * [Deploy Cribl Edge components](./cribl/edge/EDGE_SETUP.md)
-* [Deploy the `otel-demo` app](./otel-demo/APP_SETUP.md)
 * [Deploy the Elastic stack](./elastic/ELASTIC_SETUP.md)
+* [Deploy the `otel-demo` app](./otel-demo/APP_SETUP.md)
 * [To support Search replay, deploy the `ngrok` reverse tunnel](./ngrok/NGROK_SETUP.md)
 
 ## Demo material
