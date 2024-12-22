@@ -23,7 +23,11 @@ kubectl cluster-info --context kind-cluster
 brew install helm
 ```
 
-## Add Cribl Helm repo chart:
+## Add Helm repos:
 ```
 helm repo add cribl https://criblio.github.io/helm-charts/
+helm repo add ngrok https://charts.ngrok.com
 ```
+
+## Sign up for ngrok free tier 
+https://dashboard.ngrok.com/login
