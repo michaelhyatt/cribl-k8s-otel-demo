@@ -19,3 +19,6 @@ dataset="k8s_disk_spool" resource.attributes["service.name"]="frontend" name="PO
 // only show the top 10 (slowest) transactions
 | top 10 by duration desc
 ```
+
+## Install dashboards from the pack
+This [pack](./Otel_demo_dashboards_0.0.1.crbl) can be uploaded to Search to create the dashboards to show traces from Lake and k8s Edge DaemonSet disk spools.

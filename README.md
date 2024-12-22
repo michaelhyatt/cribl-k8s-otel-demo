@@ -16,6 +16,7 @@ The Cribl.Cloud part of the setup only needs to be done once for the Lake datase
 * [Deploy the Elastic stack](./elastic/ELASTIC_SETUP.md)
 * [Deploy the `otel-demo` app](./otel-demo/APP_SETUP.md)
 * [To support Search replay, deploy the `ngrok` reverse tunnel](./ngrok/NGROK_SETUP.md)
+* [Cribl Search setup instructions](./cribl/search/SEARCH_SETUP.md)
 
 ## Demo material
 * [Presentation](https://docs.google.com/presentation/d/1YpUe1XLNAUBW9JwJXoqTwcCjkkNiwUHTxUXfimFOnck/edit#slide=id.g2e67515ea38_0_847)
