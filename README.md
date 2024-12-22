@@ -1,72 +1,87 @@
 # Kubernetes and application observability demo with Cribl
 
+## [Prerequisites](./PREREQUISITES.md)
+`kubectl`, `kind`, `helm`
+
+## Setup
+### [Deploy Cribl Stream components](./cribl/stream/STREAM_SETUP.md)
+
 ## Diagram
 ![diagram](images/k8s-o11y-demo.png)
 
-## Prerequisites
-### `kubectl`
-```
-brew install kubectl
-```
+## Configure Cribl Edge
+### Create fleet otel-demo-k8s-fleet
+### Create 2 OTel sources, grpc and http, version 1.3.1:
+<details>
+<summary>GRPC OTel source JSON</summary>
 
-### K8s cluster
-I used docker-desktop inbuilt k8s cluster, will work with `minikube` as well, or you can use `kind` if you want to simulate a multi-node cluster locally.
-#### kind
-https://kind.sigs.k8s.io/
-Install:
-```
-brew install kind
-```
-Create cluster:
-```
-kind create cluster --config kind/kind-cluster-config.yaml --name cluster`
-kubectl cluster-info --context kind-cluster
-```
+    ```json
+    {
+        "id": "otel-grpc",
+        "disabled": false,
+        "sendToRoutes": false,
+        "pqEnabled": false,
+        "streamtags": [],
+        "host": "0.0.0.0",
+        "port": 4317,
+        "tls": {
+            "disabled": true
+        },
+        "protocol": "grpc",
+        "extractSpans": true,
+        "extractMetrics": true,
+        "otlpVersion": "1.3.1",
+        "authType": "none",
+        "maxActiveCxn": 1000,
+        "extractLogs": true,
+        "type": "open_telemetry",
+        "connections": []
+    }
+    ```
+</details>
+<details>
+<summary>HTTP OTel source JSON</summary>
 
-### Helm
-```
-brew install helm
-```
+    ```json
+    {
+    "id": "otel-http",
+    "disabled": false,
+    "sendToRoutes": false,
+    "pqEnabled": false,
+    "streamtags": [],
+    "host": "0.0.0.0",
+    "port": 4318,
+    "tls": {
+        "disabled": true
+    },
+    "maxActiveReq": 256,
+    "maxRequestsPerSocket": 0,
+    "requestTimeout": 0,
+    "socketTimeout": 0,
+    "keepAliveTimeout": 15,
+    "enableHealthCheck": false,
+    "ipAllowlistRegex": "/.*/",
+    "ipDenylistRegex": "/^$/",
+    "protocol": "http",
+    "extractSpans": true,
+    "extractMetrics": true,
+    "otlpVersion": "1.3.1",
+    "authType": "none",
+    "extractLogs": true,
+    "maxActiveCxn": 1000,
+    "type": "open_telemetry",
+    "connections": []
+    }
+    ```
+</details>
 
-## Setup
-### Deploy Cribl components
-1. Add Cribl Helm repo chart:
-```
-helm repo add cribl https://criblio.github.io/helm-charts/
-```
-2. Create a worker group `otel-demo-k8s-wg`
+* Route both to Stream Cribl TCP destination at address `cribl-worker-logstream-workergroup`, port 10300 
 
-#### Deploy Cribl Stream worker
-```
-helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.2" --create-namespace -n "cribl" \
---set "config.host=<leader-url>" \
---set "config.token=<token>" \
---set "config.group=otel-demo-k8s-wg" \
---set "config.tlsLeader.enable=true"  \
---set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
---set "env.CRIBL_MAX_WORKERS=4" \
---values cribl/stream/values.yaml \
-"cribl-worker" logstream-workergroup
-```
-
-#### Configure Cribl Stream
-* Receive Cribl TCP traffic
-    * hostname 0.0.0.0 port 10300
-* Receive Cribl HTTP traffic
-    * hostname 0.0.0.0 port 10200
-
-#### Configure Cribl Edge
-* Create fleet otel-demo-k8s-fleet
-* Create 2 OTel sources, grpc and http, version 1.3.1:
-    * hostname: 0.0.0.0, grpc on port 4317, http on port 4318
-
-* Route both to Stream Cribl TCP destination
-    * Address `cribl-worker-logstream-workergroup`, port 10300 
 
 * Sending OTel data to local Elastic cluster
     * Create an OTel destination, address `http://apm.elastic.svc.cluster.local:8200`, OTel version 1.3.1, TLS off
 
-* Sending Prometheus metrics to local Elastic cluster
+* Optional: Sending Prometheus metrics to local Elastic cluster
     * Create a Prometheus destination, address `http://prometheus.elastic.svc.cluster.local:9201`, authentication None, Certificate validation off
 
 TODO:
@@ -78,7 +93,7 @@ TODO:
 
 #### Deploy Cribl Edge as DaemonSet
 ```
-helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.2" --create-namespace -n "cribl" \
+helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.3" --create-namespace -n "cribl" \
 --set "cribl.leader=tls://<token>@<leader-url>?group=otel-demo-k8s-fleet" \
 --set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
 --values cribl/edge/values.yaml \
