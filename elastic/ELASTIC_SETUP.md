@@ -23,7 +23,12 @@ kubectl create ns elastic
 kubectl apply -n elastic -f elastic/elastic.yaml
 ```
 
-#### Forward the 5601 port to access Kibana
+## Load `RED Metrics` dashboard
+```
+kubectl apply -f elastic/add_dashboard.yml
+```
+
+## Forward the 5601 port to access Kibana
 ```
 kubectl port-forward svc/my-otel-demo-frontendproxy 5601:5601
 ```
