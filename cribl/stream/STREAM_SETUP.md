@@ -32,10 +32,7 @@ Check the new worker appear in the UI.
 
 # Set up the worker group
 
-## Cribl TCP and HTTP Sources
-They should already exist, you can simply enable them and send both of them to routes. Disable TLS on TCP source.
-
-### Receive Cribl TCP traffic port 10300
+## Receive Cribl TCP traffic port 10300
 Used to receive the OTel data from Edge Daemonset
 <details>
 <summary>Cribl TCP source JSON</summary>
@@ -57,41 +54,6 @@ Used to receive the OTel data from Edge Daemonset
         "enableLoadBalancing": false,
         "type": "cribl_tcp",
         "port": 10300,
-        "connections": []
-    }
-```
-</details>
-
-### Receive Cribl HTTP traffic port 10200
-Used for data replay from Search using `| send <url>`
-<details>
-<summary>Cribl HTTP source JSON</summary>
-
-```json
-    {
-        "id": "in_cribl_http",
-        "disabled": false,
-        "sendToRoutes": true,
-        "pqEnabled": false,
-        "streamtags": [],
-        "host": "0.0.0.0",
-        "tls": {
-            "disabled": true,
-            "requestCert": false
-        },
-        "maxActiveReq": 256,
-        "maxRequestsPerSocket": 0,
-        "enableProxyHeader": false,
-        "captureHeaders": false,
-        "activityLogSampleRate": 100,
-        "requestTimeout": 0,
-        "socketTimeout": 0,
-        "keepAliveTimeout": 5,
-        "enableHealthCheck": false,
-        "ipAllowlistRegex": "/.*/",
-        "ipDenylistRegex": "/^$/",
-        "type": "cribl_http",
-        "port": 10200,
         "connections": []
     }
 ```
@@ -329,6 +291,46 @@ endpoint (no http://): `apm.elastic.svc.cluster.local:8200`
   },
   "type": "open_telemetry",
   "endpoint": "apm.elastic.svc.cluster.local:8200"
+}
+```
+</details>
+
+### Receive Cribl HTTP traffic port 10200
+Used for data replay from Search using `| send <url>`
+This source will be connected to OTel destination in QuickConnect.
+<details>
+<summary>Cribl HTTP source JSON</summary>
+
+```json
+{
+  "id": "in_cribl_http",
+  "disabled": false,
+  "sendToRoutes": false,
+  "pqEnabled": false,
+  "streamtags": [],
+  "host": "0.0.0.0",
+  "tls": {
+    "disabled": true,
+    "requestCert": false
+  },
+  "maxActiveReq": 256,
+  "maxRequestsPerSocket": 0,
+  "enableProxyHeader": false,
+  "captureHeaders": false,
+  "activityLogSampleRate": 100,
+  "requestTimeout": 0,
+  "socketTimeout": 0,
+  "keepAliveTimeout": 5,
+  "enableHealthCheck": false,
+  "ipAllowlistRegex": "/.*/",
+  "ipDenylistRegex": "/^$/",
+  "type": "cribl_http",
+  "port": 10200,
+  "connections": [
+    {
+      "output": "elastic-otel"
+    }
+  ]
 }
 ```
 </details>

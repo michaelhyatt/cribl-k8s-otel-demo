@@ -2,11 +2,12 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: frontendproxy-http-ingress
-  namespace: otel-demo
+  name: cribl-worker-logstream-workergroup-ingress
+  namespace: cribl
 spec:
   ingressClassName: ngrok
   rules:
+      # Update the URL to match the one provided by ngrok
     - host: silkworm-shining-instantly.ngrok-free.app
       http:
         paths:
@@ -14,6 +15,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: opentelemetry-demo-frontendproxy
+                name: cribl-worker-logstream-workergroup
                 port:
-                  number: 8080
+                  number: 10200
