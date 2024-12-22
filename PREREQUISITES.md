@@ -35,6 +35,11 @@ helm repo add ngrok https://charts.ngrok.com
 ## Sign up for ngrok free tier 
 https://dashboard.ngrok.com/login
 
+## `k9s`
+```
+brew install k9s
+```
+
 ## Cleanup
 ```
 kind delete cluster --name cluster 

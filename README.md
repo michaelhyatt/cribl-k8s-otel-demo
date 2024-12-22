@@ -5,6 +5,7 @@
 * `kubectl`
 * `kind`
 * `helm`
+* `k9s` - not strictly a must, but super handy when troubleshooting k8s.
 * Sign up for ngrok free tier: https://dashboard.ngrok.com/login
 
 ## Setup
