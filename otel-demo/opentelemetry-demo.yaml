@@ -994,7 +994,7 @@ spec:
             value: service.name=$(OTEL_SERVICE_NAME),service.namespace=opentelemetry-demo,service.version=1.11.1
           resources:
             limits:
-              memory: 50Mi
+              memory: 150Mi
           volumeMounts:
             - name: config
               mountPath: /etc/flagd
