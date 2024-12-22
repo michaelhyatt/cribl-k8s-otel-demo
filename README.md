@@ -4,101 +4,11 @@
 `kubectl`, `kind`, `helm`
 
 ## Setup
-### [Deploy Cribl Stream components](./cribl/stream/STREAM_SETUP.md)
+* [Deploy Cribl Stream components](./cribl/stream/STREAM_SETUP.md)
+* [Deploy Cribl Edge components](./cribl/edge/EDGE_SETUP.md)
 
 ## Diagram
 ![diagram](images/k8s-o11y-demo.png)
-
-## Configure Cribl Edge
-### Create fleet otel-demo-k8s-fleet
-### Create 2 OTel sources, grpc and http, version 1.3.1:
-<details>
-<summary>GRPC OTel source JSON</summary>
-
-    ```json
-    {
-        "id": "otel-grpc",
-        "disabled": false,
-        "sendToRoutes": false,
-        "pqEnabled": false,
-        "streamtags": [],
-        "host": "0.0.0.0",
-        "port": 4317,
-        "tls": {
-            "disabled": true
-        },
-        "protocol": "grpc",
-        "extractSpans": true,
-        "extractMetrics": true,
-        "otlpVersion": "1.3.1",
-        "authType": "none",
-        "maxActiveCxn": 1000,
-        "extractLogs": true,
-        "type": "open_telemetry",
-        "connections": []
-    }
-    ```
-</details>
-<details>
-<summary>HTTP OTel source JSON</summary>
-
-    ```json
-    {
-    "id": "otel-http",
-    "disabled": false,
-    "sendToRoutes": false,
-    "pqEnabled": false,
-    "streamtags": [],
-    "host": "0.0.0.0",
-    "port": 4318,
-    "tls": {
-        "disabled": true
-    },
-    "maxActiveReq": 256,
-    "maxRequestsPerSocket": 0,
-    "requestTimeout": 0,
-    "socketTimeout": 0,
-    "keepAliveTimeout": 15,
-    "enableHealthCheck": false,
-    "ipAllowlistRegex": "/.*/",
-    "ipDenylistRegex": "/^$/",
-    "protocol": "http",
-    "extractSpans": true,
-    "extractMetrics": true,
-    "otlpVersion": "1.3.1",
-    "authType": "none",
-    "extractLogs": true,
-    "maxActiveCxn": 1000,
-    "type": "open_telemetry",
-    "connections": []
-    }
-    ```
-</details>
-
-* Route both to Stream Cribl TCP destination at address `cribl-worker-logstream-workergroup`, port 10300 
-
-
-* Sending OTel data to local Elastic cluster
-    * Create an OTel destination, address `http://apm.elastic.svc.cluster.local:8200`, OTel version 1.3.1, TLS off
-
-* Optional: Sending Prometheus metrics to local Elastic cluster
-    * Create a Prometheus destination, address `http://prometheus.elastic.svc.cluster.local:9201`, authentication None, Certificate validation off
-
-TODO:
-* Sending logs to local Elastic cluster
-
-TODO:
-* Forward it to Lake
-* Receive Cribl HTTP traffic for replays and forwward it to Elastic OTel
-
-#### Deploy Cribl Edge as DaemonSet
-```
-helm install --repo "https://criblio.github.io/helm-charts/" --version "^4.9.3" --create-namespace -n "cribl" \
---set "cribl.leader=tls://<token>@<leader-url>?group=otel-demo-k8s-fleet" \
---set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
---values cribl/edge/values.yaml \
-"cribl-edge" edge
-```
 
 ### Deploy otel-demo app
 #### Deploy using `kubectl`:
