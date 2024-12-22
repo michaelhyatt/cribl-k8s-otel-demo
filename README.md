@@ -21,5 +21,12 @@ The Cribl.Cloud part of the setup only needs to be done once for the Lake datase
 * [Presentation](https://docs.google.com/presentation/d/1YpUe1XLNAUBW9JwJXoqTwcCjkkNiwUHTxUXfimFOnck/edit#slide=id.g2e67515ea38_0_847)
 * [Recording](https://cribl.zoom.us/rec/share/kUJe_50eWgm4dk1RA48DpbCmC4gv9oxfLui6ZyqD-3PLgppc3flHzOYoOdyXdqkh.ZRROFJhnwAhwUccZ) Password: $hQM2F#w
 
-## Diagram
+## Diagrams
+### Telemetry forwarding
+![diagram](./images/resulting-forwarding.png)
+
+### Searching directly on Edge
+![diagram](./images/search-in-spool.png)
+
+### Overall connectivity
 ![diagram](images/k8s-o11y-demo.png)
