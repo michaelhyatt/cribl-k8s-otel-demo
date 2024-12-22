@@ -6,6 +6,9 @@
 * Path filter: `!source.endsWith('.tmp')`
 ![diagram](../../images/search-spool-provider.png)
 
+## Lake Search datasets
+Should work out of the box. Replace `k8s_disk_spool` with `otel_traces` or even `otel_*`.
+
 ## Test Query to find 10 slowest traces
 ```k
 dataset="k8s_disk_spool" resource.attributes["service.name"]="frontend" name="POST /api/checkout"
