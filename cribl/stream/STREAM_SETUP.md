@@ -1,6 +1,9 @@
 # Deploy Cribl Stream
 
-Create a worker group `otel-demo-k8s-wg`
+## Overall design
+![Diagram](../../images/stream-setup.png)
+
+## Create the worker group `otel-demo-k8s-wg`
 
 ## Copy the leader URL and token from `Kubernetes worker setup` dialog
 ![diagram](../../images/add-stream-worker.png)
@@ -474,3 +477,7 @@ Use the following JSON to install the routes
 }
 ```
 </details>
+
+## Commit and deploy, test
+* Test the data flowing through sources. You may need to deploy Edge and `otel-demo` first.
+* Test the destinations are available. You may need to deploy the Elastic stack first.
