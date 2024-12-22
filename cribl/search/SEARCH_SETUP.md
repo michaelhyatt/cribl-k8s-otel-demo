@@ -22,3 +22,8 @@ dataset="k8s_disk_spool" resource.attributes["service.name"]="frontend" name="PO
 
 ## Install dashboards from the pack
 This [pack](./Otel_demo_dashboards_0.0.1.crbl) can be uploaded to Search to create the dashboards to show traces from Lake and k8s Edge DaemonSet disk spools.
+Update your replay URL in 2 dashboards two right hand panels each, the dashboard queries (under Interaction tab). Mine look like this:
+```
+dataset="k8s_disk_spool" trace_id="$value$"
+| send tee=true "https://silkworm-shining-instantly.ngrok-free.app"
+```
