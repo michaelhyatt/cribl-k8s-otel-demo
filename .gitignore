@@ -1,2 +1,5 @@
 myscript.sh
 .DS_Store
+terraform/myvars.tfvars
+terraform/.*
+terraform/terraform.tfstate*
