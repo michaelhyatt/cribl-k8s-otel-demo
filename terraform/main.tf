@@ -77,6 +77,14 @@ resource "aws_security_group" "otel-demo-security-group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Stream HTTP replay
+  ingress {
+    from_port   = 10200
+    to_port     = 10200
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # SSH
   ingress {
     from_port   = 22
@@ -198,8 +206,8 @@ resource "aws_instance" "otel-demo-server" {
         "kubectl wait deployment/elastic-agent-agent -n elastic --for=condition=Available=True --timeout=10m",
         "kubectl wait deployment/fleet-server-agent -n elastic --for=create --timeout=10m",
         "kubectl wait deployment/fleet-server-agent -n elastic --for=condition=Available=True --timeout=10m",   
-        "kubectl wait svc/apm -n elastic --for=condition=Available=True --timeout=10m", 
-        "kubectl wait svc/prometheus -n elastic --for=condition=Available=True --timeout=10m", 
+        "kubectl wait svc/apm -n elastic --for=create --timeout=10m", 
+        "kubectl wait svc/prometheus -n elastic --for=create --timeout=10m", 
 
         <<EOT
             kubectl patch deployment kibana-kb -n elastic --type='json' -p \
