@@ -194,6 +194,13 @@ resource "aws_instance" "otel-demo-server" {
 
         "kubectl apply -n elastic -f elastic/add_dashboard.yml",
 
+        "kubectl wait deployment/elastic-agent-agent -n elastic --for=create --timeout=10m",
+        "kubectl wait deployment/elastic-agent-agent -n elastic --for=condition=Available=True --timeout=10m",
+        "kubectl wait deployment/fleet-server-agent -n elastic --for=create --timeout=10m",
+        "kubectl wait deployment/fleet-server-agent -n elastic --for=condition=Available=True --timeout=10m",   
+        "kubectl wait svc/apm -n elastic --for=condition=Available=True --timeout=10m", 
+        "kubectl wait svc/prometheus -n elastic --for=condition=Available=True --timeout=10m", 
+
         <<EOT
             kubectl patch deployment kibana-kb -n elastic --type='json' -p \
             '[{"op": "add", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value": 5601}]'
@@ -218,10 +225,7 @@ resource "aws_instance" "otel-demo-server" {
             kubectl patch deployment cribl-worker-logstream-workergroup -n cribl --type='json' -p \
             '[{"op": "add", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value": 10200}]'
         EOT
-        ,
-
-        "kubectl wait deployment/elastic-agent-agent -n elastic --for=create --timeout=10m",
-        "kubectl wait deployment/fleet-server-agent -n elastic --for=create --timeout=10m",        
+        ,     
 
         "kubectl apply --namespace otel-demo -f otel-demo/opentelemetry-demo.yaml",
 
