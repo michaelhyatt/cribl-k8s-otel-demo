@@ -20,6 +20,39 @@ variable "server_name" {
   description = "Give it a name we can recognise in AWS EC2 console"
 }
 
+variable "cribl_edge_leader_url" {
+  description = "The leader URL for the Cribl Edge"
+}
+
+variable "cribl_edge_token" {
+  description = "The token for the Cribl Edge"
+}
+
+variable "cribl_edge_version" {
+  description = "The version of the Cribl Edge"
+}
+
+variable "cribl_edge_fleet" {
+  description = "The fleet name for the Cribl Edge"
+}
+
+variable "cribl_stream_leader_url" {
+  description = "The leader URL for the Cribl Stream"
+}
+
+variable "cribl_stream_token" {
+  description = "The token for the Cribl Stream"
+}
+
+variable "cribl_stream_version" {
+  description = "The version of the Cribl Stream"
+}
+
+variable "cribl_stream_worker_group" {
+  description = "The worker group for the Cribl Stream"
+}
+
+
 provider "aws" {
   region = var.region
 }
@@ -88,18 +121,6 @@ resource "aws_instance" "otel-demo-server" {
     host        = self.public_ip
   }
 
-  # Install docker and docker-compose, create directories
-  provisioner "remote-exec" {
-    inline = [
-      "sudo sysctl -w vm.max_map_count=262144",
-      "sudo apt-get update -y",
-      "sudo apt-get install -y git docker.io docker-compose-v2",
-      "sudo systemctl start docker",
-      "sudo systemctl enable docker",
-      "sudo usermod -aG docker ubuntu",
-    ]
-  }
-
   # Copy the cribl dir
   provisioner "file" {
     source      = "${path.module}/../cribl"
@@ -124,12 +145,65 @@ resource "aws_instance" "otel-demo-server" {
     destination = "/home/ubuntu"
   }
 
+  # Install everything
+  provisioner "remote-exec" {
+    inline = [
+        "sudo sysctl -w vm.max_map_count=262144",
+        "sudo apt-get update -y",
+        "sudo apt-get install -y git docker.io docker-compose-v2",
+        "sudo systemctl start docker",
+        "sudo systemctl enable docker",
+        "sudo usermod -aG docker ubuntu",
+        "sudo apt install snapd -y",
+        "sudo snap install k9s",
+        "sudo snap install kubectl",
+        "sudo snap install helm",
+        "[ $(uname -m) = x86_64 ] && curl -Lo ./kind.exec https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64",
+        "[ $(uname -m) = aarch64 ] && curl -Lo ./kind.exec https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-arm64",
+        "chmod +x ./kind.exec",
+        "sudo mv ./kind.exec /usr/local/bin/kind",
+        "helm repo add cribl https://criblio.github.io/helm-charts/",
+    ]
+  }
+
   # Deploy everything
   provisioner "remote-exec" {
     inline = [
-      "cd /home/ubuntu",
+        "echo 'Creating the kind cluster'",
+        "kind create cluster --config kind/kind-cluster-config.yaml --name cluster --quiet",
+        "kubectl cluster-info --context kind-cluster",
+        "kubectl create -f https://download.elastic.co/downloads/eck/2.15.0/crds.yaml",
+        "kubectl apply -f https://download.elastic.co/downloads/eck/2.15.0/operator.yaml",
+        "kubectl apply -n elastic-system -f elastic/license.yaml",
+        "kubectl create ns elastic",
+        "kubectl apply -n elastic -f elastic/elastic.yaml",
+        "kubectl apply -f elastic/add_dashboard.yml",
+
+        <<EOT
+            helm install --repo "https://criblio.github.io/helm-charts/" \
+                --version "^${var.cribl_edge_version}" --create-namespace -n "cribl" \
+                --set "cribl.leader=tls://${var.cribl_edge_token}@${var.cribl_edge_leader_url}?group=${var.cribl_edge_fleet}" \
+                --set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
+                --values cribl/edge/values.yaml \
+                "cribl-edge" edge
+        EOT
+        ,
+        <<EOT
+            helm install --repo "https://criblio.github.io/helm-charts/" --version "^${var.cribl_stream_version}" --create-namespace -n "cribl" \
+                --set "config.host=${var.cribl_stream_leader_url}" \
+                --set "config.token=${var.cribl_stream_token}" \
+                --set "config.group=${var.cribl_stream_worker_group}" \
+                --set "config.tlsLeader.enable=true"  \
+                --set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
+                --set "env.CRIBL_MAX_WORKERS=4" \
+                --values cribl/stream/values.yaml \
+                "cribl-worker" logstream-workergroup
+        EOT
+        ,
+        "kubectl apply --namespace otel-demo -f otel-demo/opentelemetry-demo.yaml",
     ]
-  } 
+  }
+
 
   tags = {
     Name = var.server_name
