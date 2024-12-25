@@ -26,11 +26,11 @@ kubectl apply -n elastic -f elastic/elastic.yaml
 ## Load `RED Metrics` dashboard
 Wait for the main Elastic stack to come up. It is a good point to check if the OTel and Prometheus Stream destinations are up when Elastic Agent is up.
 ```
-kubectl apply -f elastic/add_dashboard.yml
+kubectl apply -n elastic -f elastic/add_dashboard.yml
 ```
 
 ## Forward the 5601 port to access Kibana
 ```
-kubectl port-forward svc/my-otel-demo-frontendproxy 5601:5601
+kubectl port-forward svc/kibana-kb-http -n elastic 5601:5601 --address 0.0.0.0
 ```
 * Kibana: http://localhost:5601
