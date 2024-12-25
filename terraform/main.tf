@@ -185,18 +185,6 @@ resource "aws_instance" "otel-demo-server" {
                 "cribl-edge" edge
         EOT
         ,
-        <<EOT
-            helm install --repo "https://criblio.github.io/helm-charts/" --version "^${var.cribl_stream_version}" --create-namespace -n "cribl" \
-                --set "config.host=${var.cribl_stream_leader_url}" \
-                --set "config.token=${var.cribl_stream_token}" \
-                --set "config.group=${var.cribl_stream_worker_group}" \
-                --set "config.tlsLeader.enable=true"  \
-                --set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
-                --set "env.CRIBL_MAX_WORKERS=4" \
-                --values cribl/stream/values.yaml \
-                "cribl-worker" logstream-workergroup
-        EOT
-        ,
         "kubectl apply -n elastic-system -f elastic/license.yaml",
         "kubectl create ns elastic",
         "kubectl apply -n elastic -f elastic/elastic.yaml",
@@ -211,7 +199,18 @@ resource "aws_instance" "otel-demo-server" {
             '[{"op": "add", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value": 5601}]'
         EOT
         ,
-
+        <<EOT
+            helm install --repo "https://criblio.github.io/helm-charts/" --version "^${var.cribl_stream_version}" --create-namespace -n "cribl" \
+                --set "config.host=${var.cribl_stream_leader_url}" \
+                --set "config.token=${var.cribl_stream_token}" \
+                --set "config.group=${var.cribl_stream_worker_group}" \
+                --set "config.tlsLeader.enable=true"  \
+                --set "env.CRIBL_K8S_TLS_REJECT_UNAUTHORIZED=0" \
+                --set "env.CRIBL_MAX_WORKERS=4" \
+                --values cribl/stream/values.yaml \
+                "cribl-worker" logstream-workergroup
+        EOT
+        ,
         "kubectl wait deployment/cribl-worker-logstream-workergroup -n cribl --for=create --timeout=600s",
         "kubectl wait deployment/cribl-worker-logstream-workergroup -n cribl --for=condition=Available=True --timeout=600s",
 
@@ -221,19 +220,19 @@ resource "aws_instance" "otel-demo-server" {
         EOT
         ,
 
-        "kubectl wait deployment/opentelemetry-demo-frontendproxy -n otel-demo --for=create --timeout=600s",
-        "kubectl wait deployment/opentelemetry-demo-frontendproxy -n otel-demo --for=condition=Available=True --timeout=600s",
+        "kubectl wait deployment/elastic-agent-agent -n elastic --for=create --timeout=10m",
+        "kubectl wait deployment/fleet-server-agent -n elastic --for=create --timeout=10m",        
+
+        "kubectl apply --namespace otel-demo -f otel-demo/opentelemetry-demo.yaml",
+
+        "kubectl wait deployment/opentelemetry-demo-frontendproxy -n otel-demo --for=create --timeout=10m",
+        "kubectl wait deployment/opentelemetry-demo-frontendproxy -n otel-demo --for=condition=Available=True --timeout=10m",
 
         <<EOT
             kubectl patch deployment opentelemetry-demo-frontendproxy -n otel-demo --type='json' -p \
             '[{"op": "add", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value": 8080}]'
         EOT
         ,
-        "kubectl wait deployment/elastic-agent-agent -n elastic --for=create --timeout=10m",
-        "kubectl wait deployment/fleet-server-agent -n elastic --for=create --timeout=10m",        
-
-        "kubectl apply --namespace otel-demo -f otel-demo/opentelemetry-demo.yaml",
-
     ]
   }
 
