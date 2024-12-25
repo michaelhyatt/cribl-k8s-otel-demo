@@ -155,14 +155,15 @@ resource "aws_instance" "otel-demo-server" {
         "sudo systemctl enable docker",
         "sudo usermod -aG docker ubuntu",
         "sudo apt install snapd -y",
-        "sudo snap install k9s",
-        "sudo snap install kubectl",
-        "sudo snap install helm",
+        "sudo snap install kubectl --classic",
+        "sudo snap install helm --classic",
         "[ $(uname -m) = x86_64 ] && curl -Lo ./kind.exec https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64",
         "[ $(uname -m) = aarch64 ] && curl -Lo ./kind.exec https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-arm64",
         "chmod +x ./kind.exec",
         "sudo mv ./kind.exec /usr/local/bin/kind",
         "helm repo add cribl https://criblio.github.io/helm-charts/",
+        "sudo snap install k9s",
+        "sudo ln -s /snap/k9s/current/bin/k9s /usr/local/bin",
     ]
   }
 
@@ -170,14 +171,10 @@ resource "aws_instance" "otel-demo-server" {
   provisioner "remote-exec" {
     inline = [
         "echo 'Creating the kind cluster'",
-        "kind create cluster --config kind/kind-cluster-config.yaml --name cluster --quiet",
+        "kind create cluster --config kind/kind-ec2-cluster-config.yaml --name cluster --quiet",
         "kubectl cluster-info --context kind-cluster",
         "kubectl create -f https://download.elastic.co/downloads/eck/2.15.0/crds.yaml",
         "kubectl apply -f https://download.elastic.co/downloads/eck/2.15.0/operator.yaml",
-        "kubectl apply -n elastic-system -f elastic/license.yaml",
-        "kubectl create ns elastic",
-        "kubectl apply -n elastic -f elastic/elastic.yaml",
-        "kubectl apply -f elastic/add_dashboard.yml",
 
         <<EOT
             helm install --repo "https://criblio.github.io/helm-charts/" \
@@ -200,7 +197,43 @@ resource "aws_instance" "otel-demo-server" {
                 "cribl-worker" logstream-workergroup
         EOT
         ,
+        "kubectl apply -n elastic-system -f elastic/license.yaml",
+        "kubectl create ns elastic",
+        "kubectl apply -n elastic -f elastic/elastic.yaml",
+
+        "kubectl wait deployment/kibana-kb -n elastic --for=create --timeout=10m",
+        "kubectl wait deployment/kibana-kb -n elastic --for=condition=Available=True --timeout=10m",
+
+        "kubectl apply -n elastic -f elastic/add_dashboard.yml",
+
+        <<EOT
+            kubectl patch deployment kibana-kb -n elastic --type='json' -p \
+            '[{"op": "add", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value": 5601}]'
+        EOT
+        ,
+
+        "kubectl wait deployment/cribl-worker-logstream-workergroup -n cribl --for=create --timeout=600s",
+        "kubectl wait deployment/cribl-worker-logstream-workergroup -n cribl --for=condition=Available=True --timeout=600s",
+
+        <<EOT
+            kubectl patch deployment cribl-worker-logstream-workergroup -n cribl --type='json' -p \
+            '[{"op": "add", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value": 10200}]'
+        EOT
+        ,
+
+        "kubectl wait deployment/opentelemetry-demo-frontendproxy -n otel-demo --for=create --timeout=600s",
+        "kubectl wait deployment/opentelemetry-demo-frontendproxy -n otel-demo --for=condition=Available=True --timeout=600s",
+
+        <<EOT
+            kubectl patch deployment opentelemetry-demo-frontendproxy -n otel-demo --type='json' -p \
+            '[{"op": "add", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value": 8080}]'
+        EOT
+        ,
+        "kubectl wait deployment/elastic-agent-agent -n elastic --for=create --timeout=10m",
+        "kubectl wait deployment/fleet-server-agent -n elastic --for=create --timeout=10m",        
+
         "kubectl apply --namespace otel-demo -f otel-demo/opentelemetry-demo.yaml",
+
     ]
   }
 
