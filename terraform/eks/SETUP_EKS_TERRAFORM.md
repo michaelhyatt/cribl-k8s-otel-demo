@@ -6,7 +6,7 @@ terraform init
 ```
 
 ## Setup
-Can take overe 10 minutes.
+Can take over 10-15 minutes. EKS provisioning is slo-o-ow.
 ```
 terraform apply -auto-approve -var-file main.tfvars
 ```

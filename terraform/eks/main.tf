@@ -46,6 +46,26 @@ resource "aws_security_group" "eks-sg" {
   vpc_id = module.vpc.vpc_id
 }
 
+resource "aws_security_group_rule" "eks-sg-ingress" {
+  description       = "allow inbound traffic from eks"
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  security_group_id = aws_security_group.eks-sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "eks-sg-egress" {
+  description       = "allow outbound traffic to eks"
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  security_group_id = aws_security_group.eks-sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
@@ -57,6 +77,8 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   cluster_endpoint_public_access = true
+  enable_cluster_creator_admin_permissions = true
+
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
@@ -77,4 +99,33 @@ module "eks" {
     Environment = "${var.demo_name_prefix}"
     Terraform   = "true"
   }
+}
+
+output "cluster_id" {
+  description = "AWS EKS Cluster ID"
+  value       = module.eks.cluster_id
+}
+
+output "cluster_name" {
+  description = "AWS EKS Cluster ID"
+  value       = module.eks.cluster_name
+}
+
+output "cluster_endpoint" {
+  description = "AWS EKS Cluster Endpoint"
+  value       = module.eks.cluster_endpoint
+}
+
+output "cluster_security_group_id" {
+  description = "Security group ID of the control plane in the cluster"
+  value       = module.eks.cluster_security_group_id
+}
+
+output "region" {
+  description = "AWS region"
+  value       = var.region
+}
+
+output "oidc_provider_arn" {
+  value = module.eks.oidc_provider_arn
 }
