@@ -5,10 +5,11 @@
 * `kubectl`
 * `kind`
 * `helm`
+* terraform and AWS account for Cloud deployments
 * `k9s` - not strictly a must, but super handy when troubleshooting k8s.
 * Sign up for ngrok free tier: https://dashboard.ngrok.com/login
 
-## Setup
+## Local setup
 The Cribl.Cloud part of the setup only needs to be done once for the Search dashboards, Lake datasets, Edge fleet and Stream Worker Group.
 * [Create a `kind` k8s cluster](./kind/SETUP_KIND.md)
 * [Deploy Cribl Stream components](./cribl/stream/STREAM_SETUP.md). [Lake](./cribl/lake/LAKE_SETUP.md) instructions included in Stream.
@@ -17,6 +18,9 @@ The Cribl.Cloud part of the setup only needs to be done once for the Search dash
 * [Deploy the `otel-demo` app](./otel-demo/APP_SETUP.md)
 * [To support Search replay, deploy the `ngrok` reverse tunnel](./ngrok/NGROK_SETUP.md)
 * [Cribl Search setup instructions](./cribl/search/SEARCH_SETUP.md)
+
+## [Alternative setup with AWS EC2 and Terraform](./terraform/SETUP_TERRAFORM.md) 
+Requires local install of Terraform, awscli and access to AWS including all the correct values in `~/.aws/credentials`.
 
 ## Demo material
 * [Presentation](https://docs.google.com/presentation/d/1YpUe1XLNAUBW9JwJXoqTwcCjkkNiwUHTxUXfimFOnck/edit#slide=id.g2e67515ea38_0_847)
