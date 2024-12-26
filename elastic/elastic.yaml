@@ -102,6 +102,11 @@ spec:
   nodeSets:
   - name: elastic
     count: 1
+    podTemplate:
+      spec:
+        volumes:
+        - name: elasticsearch-data
+          emptyDir: {}    
     config:
       node.store.allow_mmap: false
       xpack.security.authc:

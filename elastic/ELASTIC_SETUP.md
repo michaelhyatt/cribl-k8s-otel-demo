@@ -2,8 +2,8 @@
 
 ## Install ECK operator
 ```
-kubectl create -f https://download.elastic.co/downloads/eck/2.15.0/crds.yaml
-kubectl apply -f https://download.elastic.co/downloads/eck/2.15.0/operator.yaml
+kubectl create -f https://download.elastic.co/downloads/eck/2.16.0/crds.yaml
+kubectl apply -f https://download.elastic.co/downloads/eck/2.16.0/operator.yaml
 ```
 
 ## Check the operator is up by seeing the operator logs appear

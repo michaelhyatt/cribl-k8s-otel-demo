@@ -181,8 +181,8 @@ resource "aws_instance" "otel-demo-server" {
         "echo 'Creating the kind cluster'",
         "kind create cluster --config kind/kind-ec2-cluster-config.yaml --name cluster --quiet",
         "kubectl cluster-info --context kind-cluster",
-        "kubectl create -f https://download.elastic.co/downloads/eck/2.15.0/crds.yaml",
-        "kubectl apply -f https://download.elastic.co/downloads/eck/2.15.0/operator.yaml",
+        "kubectl create -f https://download.elastic.co/downloads/eck/2.16.0/crds.yaml",
+        "kubectl apply -f https://download.elastic.co/downloads/eck/2.16.0/operator.yaml",
 
         <<EOT
             helm install --repo "https://criblio.github.io/helm-charts/" \
