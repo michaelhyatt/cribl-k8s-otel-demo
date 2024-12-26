@@ -19,8 +19,10 @@ The Cribl.Cloud part of the setup only needs to be done once for the Search dash
 * [To support Search replay, deploy the `ngrok` reverse tunnel](./ngrok/NGROK_SETUP.md)
 * [Cribl Search setup instructions](./cribl/search/SEARCH_SETUP.md)
 
-## [Alternative setup with AWS EC2 and Terraform](./terraform/SETUP_TERRAFORM.md) 
+## Alternative setup with Terraform 
 Requires local install of Terraform, awscli and access to AWS including all the correct values in `~/.aws/credentials`.
+* [Alternative setup with Terraform and EC2](./terraform/ec2/SETUP_EC2_TERRAFORM.md)
+* [Alternative setup with Terraform and EKS](./terraform/eks/SETUP_EKS_TERRAFORM.md)
 
 ## Demo material
 * [Presentation](https://docs.google.com/presentation/d/1YpUe1XLNAUBW9JwJXoqTwcCjkkNiwUHTxUXfimFOnck/edit#slide=id.g2e67515ea38_0_847)
