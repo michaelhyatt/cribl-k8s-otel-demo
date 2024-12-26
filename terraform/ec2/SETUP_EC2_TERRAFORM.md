@@ -1,4 +1,4 @@
-# Setup using Terraform on AWS
+# Setup using Terraform on AWS EC2
 
 ## Setup
 Edit `main.tfvars` and populate it with Stream, Edge parameters from Cribl.Cloud. Also, specify the pem file and the name of your key used to create EC2 instances. Give your instance a name and specify the region. Check that the AMI with Ubintu 24 Server is available in that region.
