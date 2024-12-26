@@ -31,6 +31,7 @@ spec:
           echo "Kibana is ready!"
           curl -v -H "kbn-xsrf: true" \
             --form file=@/dashboards/export.ndjson \
+            --fail-with-body \
             "http://elastic:${ELASTICSEARCH_PASSWORD}@kibana-kb-http:5601/api/saved_objects/_import?overwrite=true"
         env:
         - name: ELASTICSEARCH_PASSWORD
