@@ -20,8 +20,21 @@ aws eks --region $(terraform output -raw region) update-kubeconfig --alias eks-c
 Follow the deployment steps outlined in [`Local Setup` section](../../README.md). Skip the `ngrok` part. Use the public hostname of the cluster ingress for Kibana (port 5601), the app UI and loadgen UI (port 8080), and Search replay (port 10200).
 
 ## Get Kibana URL
+You know, to open in a browser window.
 ```
 kubectl get service kibana-kb-http -n elastic -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' | awk '{print "http://"$0":5601"}'
+```
+
+## Get Stream replay URL
+To be populated in Search tashboards for data replay.
+```
+kubectl get service cribl-worker-logstream-workergroup -n cribl -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' | awk '{print "http://"$0":10200"}'
+```
+
+## Get app and loadgen UI URL 
+Not a must, but nice to have for access to the app and loadgen (at /loadgen/)
+```
+kubectl get service opentelemetry-demo-frontendproxy -n otel-demo -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' | awk '{print "http://"$0":8080"}'
 ```
 
 ## Destroy
