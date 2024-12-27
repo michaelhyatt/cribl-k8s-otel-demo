@@ -10,7 +10,14 @@ spec:
   http:
     tls:
       selfSignedCertificate:
-        disabled: true    
+        disabled: true
+    service:
+      spec:
+        type: LoadBalancer
+      metadata:
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+          service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
   config:
     xpack.security.authc.selector.enabled: false
     xpack.security.authc.providers:
