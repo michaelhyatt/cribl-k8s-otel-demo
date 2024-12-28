@@ -1,14 +1,16 @@
 # Deploy the demo with Terraform on EKS
 
 ## Init
+Create and update `terraform.tfvars`
 ```
+cp terraform_example.tfvars terraform.tfvars
 terraform init
 ```
 
 ## Setup
 Can take over 10-15 minutes. EKS provisioning is slo-o-ow.
 ```
-terraform apply -auto-approve -var-file main.tfvars
+terraform apply -auto-approve
 ```
 
 ## Connect `kubeconfig` to the cluster
@@ -39,5 +41,5 @@ kubectl get service opentelemetry-demo-frontendproxy -n otel-demo -o jsonpath='{
 
 ## Destroy
 ```
-terraform destroy -auto-approve -var-file main.tfvars
+terraform destroy -auto-approve
 ```
