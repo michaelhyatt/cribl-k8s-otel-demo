@@ -188,3 +188,35 @@ resource "helm_release" "edge" {
 
   values = [ file("${path.module}/../../cribl/edge/values.yaml") ]
 }
+
+# Install kubectl provider
+terraform {
+  required_providers {
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "~> 1.14.0"
+    }
+  }
+}
+
+provider "kubectl" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    command     = "aws"
+  }
+}
+
+# Install otel-demo app
+locals {
+  manifests = [for manifest in split("---", file("${path.module}/../../otel-demo/opentelemetry-demo.yaml")) : yamldecode(manifest)]
+}
+
+resource "kubectl_manifest" "opentelemetry_demo" {
+  for_each = { for i, v in local.manifests : i => v }
+  yaml_body = yamlencode(merge(each.value, { "metadata" = merge(each.value.metadata, { "namespace" = "otel-demo" }) }))
+
+  force_conflicts = true
+}
