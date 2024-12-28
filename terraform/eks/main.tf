@@ -1,51 +1,10 @@
-# Update it to the correct region
-variable "region" {
-  description = "AWS region to deploy the cluster in"
-  default = "us-west-2"
-}
-
-variable "demo_name_prefix" {
-  description = "Give it a name we can recognise in AWS EC2 console"
-}
-
-variable "cribl_edge_leader_url" {
-  description = "The leader URL for the Cribl Edge"
-}
-
-variable "cribl_edge_token" {
-  description = "The token for the Cribl Edge"
-}
-
-variable "cribl_edge_version" {
-  description = "The version of the Cribl Edge"
-}
-
-variable "cribl_edge_fleet" {
-  description = "The fleet name for the Cribl Edge"
-}
-
-variable "cribl_stream_leader_url" {
-  description = "The leader URL for the Cribl Stream"
-}
-
-variable "cribl_stream_token" {
-  description = "The token for the Cribl Stream"
-}
-
-variable "cribl_stream_version" {
-  description = "The version of the Cribl Stream"
-}
-
-variable "cribl_stream_worker_group" {
-  description = "The worker group for the Cribl Stream"
-}
-
 provider "aws" {
   region = var.region
 }
 
 data "aws_availability_zones" "azs" {}
 
+# Create a VPC to deploy the EKS cluster into
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
@@ -73,11 +32,13 @@ module "vpc" {
   }
 }
 
+# Create a security group for the EKS cluster
 resource "aws_security_group" "eks-sg" {
   name   = "${var.demo_name_prefix}-eks-sg"
   vpc_id = module.vpc.vpc_id
 }
 
+# Allow inbound and outbound traffic to the EKS cluster
 resource "aws_security_group_rule" "eks-sg-ingress" {
   description       = "allow inbound traffic from eks"
   type              = "ingress"
@@ -98,6 +59,7 @@ resource "aws_security_group_rule" "eks-sg-egress" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
+# Create the EKS cluster
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
@@ -135,6 +97,7 @@ module "eks" {
   }
 }
 
+# Update kubeconfig to use the new EKS cluster
 resource "null_resource" "update_kubeconfig" {
   provisioner "local-exec" {
     command = "aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name}"
@@ -143,6 +106,7 @@ resource "null_resource" "update_kubeconfig" {
   depends_on = [module.eks]
 }
 
+# Install Helm
 provider "helm" {
   kubernetes {
     host                   = module.eks.cluster_endpoint
@@ -155,6 +119,7 @@ provider "helm" {
   }
 }
 
+# Install Cribl Stream
 resource "helm_release" "cribl_worker" {
   
   name       = "cribl-worker"
@@ -199,6 +164,7 @@ resource "helm_release" "cribl_worker" {
   values = [ file("${path.module}/../../cribl/stream/values.yaml") ]
 }
 
+# Install Cribl Edge
 resource "helm_release" "edge" {
   
   name       = "cribl-edge"
