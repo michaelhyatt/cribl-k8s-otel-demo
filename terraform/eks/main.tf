@@ -213,7 +213,7 @@ provider "kubectl" {
 locals {
   otel_demo_manifests = [for manifest in split("---", file("${path.module}/../../otel-demo/opentelemetry-demo.yaml")) : yamldecode(manifest)]
   elastic_manifests = [for manifest in split("---", file("${path.module}/../../elastic/elastic.yaml")) : yamldecode(manifest)]
-
+  elastic_dashboard = [for manifest in split("---", file("${path.module}/../../elastic/add_dashboard.yml")) : yamldecode(manifest)]
 }
 
 resource "kubectl_manifest" "opentelemetry_demo" {
@@ -264,4 +264,12 @@ resource "kubectl_manifest" "elastic_stack" {
 
   force_conflicts = true
   depends_on = [kubectl_manifest.elastic_license, kubectl_manifest.elastic_namespace, kubectl_manifest.elastic_operator]
+}
+
+resource "kubectl_manifest" "customm_dashboard" {
+  for_each = { for i, v in local.elastic_dashboard : i => v }
+  yaml_body = yamlencode(merge(each.value, { "metadata" = merge(each.value.metadata, { "namespace" = "elastic" }) }))
+
+  force_conflicts = true
+  depends_on = [kubectl_manifest.elastic_stack]
 }
