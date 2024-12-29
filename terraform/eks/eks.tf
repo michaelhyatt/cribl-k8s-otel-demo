@@ -95,13 +95,29 @@ module "eks" {
     Environment = "${var.demo_name_prefix}"
     Terraform   = "true"
   }
+  
 }
 
 # Update kubeconfig to use the new EKS cluster
 resource "null_resource" "update_kubeconfig" {
   provisioner "local-exec" {
-    command = "aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name}"
+    command = "aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name} --alias eks" 
   }
 
-  depends_on = [module.eks]
+  depends_on = [module.eks.cluster_name]
+}
+
+# Wait for the EKS cluster to be ready
+resource "null_resource" "wait_for_cluster" {
+  provisioner "local-exec" {
+    command = <<EOT
+        while ! kubectl wait --for=condition=Ready node --all --timeout=20m &> /dev/null; do
+          echo "Waiting for EKS cluster to be ready"
+          echo ""
+          sleep 10
+        done
+    EOT
+  }
+
+  depends_on = [null_resource.update_kubeconfig]
 }
