@@ -2,6 +2,7 @@ apiVersion: kibana.k8s.elastic.co/v1
 kind: Kibana
 metadata:
   name: kibana
+  namespace: elastic
 spec:
   version: 8.17.0
   count: 1
@@ -10,7 +11,14 @@ spec:
   http:
     tls:
       selfSignedCertificate:
-        disabled: true    
+        disabled: true
+    service:
+      spec:
+        type: LoadBalancer
+      metadata:
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+          service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
   config:
     xpack.security.authc.selector.enabled: false
     xpack.security.authc.providers:
@@ -97,11 +105,17 @@ apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: elasticsearch
+  namespace: elastic
 spec:
   version: 8.17.0
   nodeSets:
   - name: elastic
     count: 1
+    podTemplate:
+      spec:
+        volumes:
+        - name: elasticsearch-data
+          emptyDir: {}    
     config:
       node.store.allow_mmap: false
       xpack.security.authc:
@@ -114,6 +128,7 @@ apiVersion: agent.k8s.elastic.co/v1alpha1
 kind: Agent
 metadata:
   name: fleet-server
+  namespace: elastic
 spec:
   version: 8.17.0
   kibanaRef:
@@ -136,6 +151,7 @@ apiVersion: agent.k8s.elastic.co/v1alpha1
 kind: Agent
 metadata: 
   name: elastic-agent
+  namespace: elastic
 spec:
   version: 8.17.0
   kibanaRef:
@@ -155,6 +171,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: apm
+  namespace: elastic
 spec:
   selector:
     agent.k8s.elastic.co/name: elastic-agent
@@ -166,6 +183,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus
+  namespace: elastic
 spec:
   selector:
     agent.k8s.elastic.co/name: elastic-agent
@@ -177,6 +195,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: fleet-server
+  namespace: elastic
 rules:
 - apiGroups: [""]
   resources:
@@ -219,6 +238,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: fleet-server
+  namespace: elastic
 subjects:
 - kind: ServiceAccount
   name: fleet-server
