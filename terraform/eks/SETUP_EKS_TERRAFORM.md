@@ -1,7 +1,7 @@
 # Deploy the demo with Terraform on EKS
 
 ## Init
-Create and update `terraform.tfvars`
+Ensure `kubectl` is installed. Create and update `terraform.tfvars`:
 ```
 cp terraform_example.tfvars terraform.tfvars
 terraform init
