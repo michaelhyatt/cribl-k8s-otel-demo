@@ -101,7 +101,10 @@ module "eks" {
 # Update kubeconfig to use the new EKS cluster
 resource "null_resource" "update_kubeconfig" {
   provisioner "local-exec" {
-    command = "aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name} --alias ${var.demo_name_prefix}-eks-cluster" 
+    command = <<EOT
+      aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name} --alias ${var.demo_name_prefix}-eks-cluster" 
+      kubectl config use-context ${var.demo_name_prefix}-eks-cluster
+    EOT
   }
 
   depends_on = [module.eks.cluster_name]
