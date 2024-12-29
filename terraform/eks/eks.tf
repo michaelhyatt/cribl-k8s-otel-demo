@@ -102,7 +102,7 @@ module "eks" {
 resource "null_resource" "update_kubeconfig" {
   provisioner "local-exec" {
     command = <<EOT
-      aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name} --alias ${var.demo_name_prefix}-eks-cluster" 
+      aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name} --alias ${var.demo_name_prefix}-eks-cluster
       kubectl config use-context ${var.demo_name_prefix}-eks-cluster
     EOT
   }
