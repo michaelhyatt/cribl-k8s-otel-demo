@@ -1,24 +1,3 @@
-# The provisioning is done in other files, this file is used to retrieve the external IPs of the services
-# Install kubectl provider
-terraform {
-  required_providers {
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "~> 1.14.0"
-    }
-  }
-}
-
-provider "kubectl" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
-    command     = "aws"
-  }
-}
-
 # Use kubernetes provider to retrieve the external IPs
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
