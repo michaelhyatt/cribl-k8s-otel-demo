@@ -2,6 +2,7 @@ apiVersion: kibana.k8s.elastic.co/v1
 kind: Kibana
 metadata:
   name: kibana
+  namespace: elastic
 spec:
   version: 8.17.0
   count: 1
@@ -104,6 +105,7 @@ apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: elasticsearch
+  namespace: elastic
 spec:
   version: 8.17.0
   nodeSets:
@@ -126,6 +128,7 @@ apiVersion: agent.k8s.elastic.co/v1alpha1
 kind: Agent
 metadata:
   name: fleet-server
+  namespace: elastic
 spec:
   version: 8.17.0
   kibanaRef:
@@ -148,6 +151,7 @@ apiVersion: agent.k8s.elastic.co/v1alpha1
 kind: Agent
 metadata: 
   name: elastic-agent
+  namespace: elastic
 spec:
   version: 8.17.0
   kibanaRef:
@@ -167,6 +171,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: apm
+  namespace: elastic
 spec:
   selector:
     agent.k8s.elastic.co/name: elastic-agent
@@ -178,6 +183,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus
+  namespace: elastic
 spec:
   selector:
     agent.k8s.elastic.co/name: elastic-agent
@@ -189,6 +195,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: fleet-server
+  namespace: elastic
 rules:
 - apiGroups: [""]
   resources:
@@ -231,6 +238,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: fleet-server
+  namespace: elastic
 subjects:
 - kind: ServiceAccount
   name: fleet-server

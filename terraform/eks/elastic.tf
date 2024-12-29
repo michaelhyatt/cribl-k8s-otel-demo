@@ -1,37 +1,3 @@
-# Install kubectl provider
-terraform {
-  required_providers {
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "~> 1.14.0"
-    }
-  }
-}
-
-provider "kubectl" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
-    command     = "aws"
-  }
-}
-
-# Install otel-demo app
-locals {
-  otel_demo_manifests = [for manifest in split("---", file("${path.module}/../../otel-demo/opentelemetry-demo.yaml")) : yamldecode(manifest)]
-  elastic_manifests = [for manifest in split("---", file("${path.module}/../../elastic/elastic.yaml")) : yamldecode(manifest)]
-  elastic_dashboard = [for manifest in split("---", file("${path.module}/../../elastic/add_dashboard.yml")) : yamldecode(manifest)]
-}
-
-resource "kubectl_manifest" "opentelemetry_demo" {
-  for_each = { for i, v in local.otel_demo_manifests : i => v }
-  yaml_body = yamlencode(merge(each.value, { "metadata" = merge(each.value.metadata, { "namespace" = "otel-demo" }) }))
-
-  force_conflicts = true
-}
-
 # Install Elastic cluster using ECK
 data "http" "elastic_crds" {
   url = "https://download.elastic.co/downloads/eck/2.16.0/crds.yaml"
@@ -40,6 +6,7 @@ data "http" "elastic_crds" {
 resource "kubectl_manifest" "elastic_crds" {
   for_each = { for i, v in split("---", data.http.elastic_crds.response_body) : i => v }
   yaml_body = each.value
+  depends_on = [ null_resource.wait_for_cluster ]
 }
 
 data "http" "elastic_operator" {
@@ -49,13 +16,27 @@ data "http" "elastic_operator" {
 resource "kubectl_manifest" "elastic_operator" {
   for_each = { for i, v in split("---", data.http.elastic_operator.response_body) : i => v }
   yaml_body = each.value
-  wait_for_rollout = true
   depends_on = [kubectl_manifest.elastic_crds]
+}
+
+resource "null_resource" "wait_for_elastic_operator" {
+  depends_on = [ null_resource.wait_for_cluster ]
+
+  provisioner "local-exec" {
+    command = <<EOF
+      while ! kubectl wait --for=condition=Ready pod --selector=control-plane=elastic-operator -n elastic-system --timeout=300s &> /dev/null; do
+        echo "Waiting for Elastic Operator to be ready"
+        echo ""
+        sleep 30
+      done
+    EOF
+  }
+  
 }
 
 resource "kubectl_manifest" "elastic_license" {
   yaml_body = file("${path.module}/../../elastic/license.yaml")
-  depends_on = [kubectl_manifest.elastic_operator]
+  depends_on = [null_resource.wait_for_elastic_operator]
 }
 
 resource "kubectl_manifest" "elastic_namespace" {
@@ -65,20 +46,27 @@ resource "kubectl_manifest" "elastic_namespace" {
     metadata:
       name: elastic
   EOF
+  depends_on = [ null_resource.wait_for_elastic_operator ]
+}
+
+data "kubectl_file_documents" "elastic_cluster" {
+  content = file("${path.module}/../../elastic/elastic.yaml")
 }
 
 resource "kubectl_manifest" "elastic_stack" {
-  for_each = { for i, v in local.elastic_manifests : i => v }
-  yaml_body = yamlencode(merge(each.value, { "metadata" = merge(each.value.metadata, { "namespace" = "elastic" }) }))
+  for_each = toset(data.kubectl_file_documents.elastic_cluster.documents)
+  yaml_body = each.value
+  override_namespace = "elastic"
+  depends_on = [kubectl_manifest.elastic_license, kubectl_manifest.elastic_namespace ]
+}
 
-  force_conflicts = true
-  depends_on = [kubectl_manifest.elastic_license, kubectl_manifest.elastic_namespace, kubectl_manifest.elastic_operator]
+data "kubectl_file_documents" "add_dashboard" {
+  content = file("${path.module}/../../elastic/add_dashboard.yml")
 }
 
 resource "kubectl_manifest" "custom_dashboard" {
-  for_each = { for i, v in local.elastic_dashboard : i => v }
-  yaml_body = yamlencode(merge(each.value, { "metadata" = merge(each.value.metadata, { "namespace" = "elastic" }) }))
-
-  force_conflicts = true
-  depends_on = [kubectl_manifest.elastic_stack]
+  for_each = toset(data.kubectl_file_documents.add_dashboard.documents)
+  yaml_body = each.value
+  override_namespace = "elastic"
+  depends_on = [null_resource.wait_for_kibana_hostname]
 }
