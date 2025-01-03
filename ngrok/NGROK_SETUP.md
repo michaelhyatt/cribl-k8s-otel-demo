@@ -5,6 +5,12 @@
 helm repo add ngrok https://charts.ngrok.com
 ```
 
+## Create a Free Ngrok Account
+Start by creating a free account on Ngrok. This will allow you to access the necessary tools to expose your local server.
+
+## Set Up a Static Domain
+Once your account is set up, go to Cloud Edge > Domains in your Ngrok dashboard. Click on the + Create Domain button to create a new free static domain. Make sure to copy your new domain name for the next steps.
+
 ## Set your environment variables with your ngrok credentials. 
 Replace [AUTHTOKEN] and [API_KEY] with your Authtoken and API key.
 * Auth token: https://dashboard.ngrok.com/get-started/your-authtoken
