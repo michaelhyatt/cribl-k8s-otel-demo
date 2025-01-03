@@ -29,7 +29,7 @@ helm install ngrok-ingress-controller ngrok/kubernetes-ingress-controller \
   --set credentials.authtoken=${NGROK_AUTHTOKEN}
 ```
 
-## Create a domain in ngrok and update its name in `ngrok/ngrok-manifest.yaml`
+## Updatw the domain name in `ngrok/ngrok-manifest.yaml`
 Mine looks like the following, yours will be different. So, configure it in Ngrok and update the manifest.
 ![image](../images/ngrok-endpoint.png)
 
