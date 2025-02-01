@@ -7,7 +7,7 @@
 ## Deploy Cribl Edge DaemonSet
 Set the variables:
 ```bash
-export CRIBL_EDGE_VERSION=4.9.3
+export CRIBL_EDGE_VERSION=4.10.0
 export CRIBL_EDGE_FLEET=otel-demo-k8s-fleet
 export CRIBL_EDGE_LEADER_URL=<leader-url>
 export CRIBL_EDGE_TOKEN=<token>

@@ -11,7 +11,7 @@
 ## Deploy Cribl Stream worker
 Set the variables:
 ```bash
-export CRIBL_STREAM_VERSION=4.9.3
+export CRIBL_STREAM_VERSION=4.10.0
 export CRIBL_STREAM_WORKER_GROUP=otel-demo-k8s-wg
 export CRIBL_STREAM_TOKEN=<token>
 export CRIBL_STREAM_LEADER_URL=<leader-url>
