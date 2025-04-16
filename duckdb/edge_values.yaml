@@ -1,0 +1,21 @@
+# Expose OTel listener ports on each k8s node to collect OTel traffic locally
+service:
+  enable: true
+  type: NodePort
+  externalTrafficPolicy: Local
+  ports:
+  - name: grpc
+    port: 4317
+    targetPort: 4317
+    protocol: TCP
+  - name: http
+    port: 4318
+    targetPort: 4318
+    protocol: TCP
+
+extraVolumeMounts:
+  - name: external-storage
+    mountPath: /opt/cribl/state/spool/out/disk_spool
+    hostPath: /mnt/data
+    readOnly: false
+
