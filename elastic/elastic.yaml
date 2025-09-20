@@ -4,7 +4,7 @@ metadata:
   name: kibana
   namespace: elastic
 spec:
-  version: 8.17.0
+  version: 8.19.0
   count: 1
   elasticsearchRef:
     name: elasticsearch
@@ -107,7 +107,7 @@ metadata:
   name: elasticsearch
   namespace: elastic
 spec:
-  version: 8.17.0
+  version: 8.19.0
   nodeSets:
   - name: elastic
     count: 1
@@ -130,7 +130,7 @@ metadata:
   name: fleet-server
   namespace: elastic
 spec:
-  version: 8.17.0
+  version: 8.19.0
   kibanaRef:
     name: kibana
   elasticsearchRefs:
@@ -153,7 +153,7 @@ metadata:
   name: elastic-agent
   namespace: elastic
 spec:
-  version: 8.17.0
+  version: 8.19.0
   kibanaRef:
     name: kibana
   fleetServerRef: 
