@@ -1,5 +1,5 @@
 # Set up Cribl Search
-## Dataset provider setup
+## Dataset setup
 * Name: `k8s_disk_spool`
 * Fleets to query: `otel-demo-k8s-fleet`
 * Path: `$CRIBL_SPOOL_DIR/out/disk_spool/${output_id}/${__earliest:%s}_${__latest:%s}`
