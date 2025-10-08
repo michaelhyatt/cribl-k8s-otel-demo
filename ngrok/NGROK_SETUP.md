@@ -22,18 +22,24 @@ export NGROK_API_KEY=[API_KEY]
 
 ## Install the ngrok Kubernetes Operator
 ```bash
-helm install ngrok-ingress-controller ngrok/kubernetes-ingress-controller \
+helm install ngrok-operator ngrok/ngrok-operator \
   --namespace ngrok-ingress-controller \
   --create-namespace \
   --set credentials.apiKey=${NGROK_API_KEY} \
   --set credentials.authtoken=${NGROK_AUTHTOKEN}
 ```
 
-## Updatw the domain name in `ngrok/ngrok-manifest.yaml`
+## Update the domain name in `ngrok/ngrok-manifest.yaml`
 Mine looks like the following, yours will be different. So, configure it in Ngrok and update the manifest.
 ![image](../images/ngrok-endpoint.png)
 
 ## Apply the manifest file to your k8s cluster.
 ```
 kubectl apply -f ngrok/ngrok-manifest.yaml
+```
+
+## To delete the ngrok tunnel
+Once you are done, to remove the tunnel
+```
+kubectl delete -f ngrok/ngrok-manifest.yaml
 ```
