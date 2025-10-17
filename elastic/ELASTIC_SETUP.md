@@ -34,3 +34,25 @@ kubectl apply -n elastic -f elastic/add_dashboard.yml
 kubectl port-forward svc/kibana-kb-http -n elastic 5601:5601 --address 0.0.0.0
 ```
 * Kibana: http://localhost:5601
+
+## Stopping Port Forwarding
+If kubectl port-forward is running in your terminal, press Ctrl + C to terminate the command and immediately stop forwarding ports.​
+
+If you ran the process in the background or closed the original terminal, find and kill the process:
+
+### List kubectl processes:
+```bash
+ps aux | grep kubectl
+```
+Identify the correct process for your port-forward and note the PID.
+
+### Kill the process:
+```bash
+kill <PID>
+```
+
+### Or kill all kubectl processes with:
+```bash
+pkill kubectl
+```
+(Be cautious with this, as it will stop all kubectl operations, not just port-forwarding).
