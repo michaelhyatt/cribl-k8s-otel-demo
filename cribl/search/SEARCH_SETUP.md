@@ -9,6 +9,11 @@
 ## Lake Search datasets
 Should work out of the box. Replace `k8s_disk_spool` with `otel_traces` or even `otel_*`.
 
+## Update the `Processing`
+In the `Processing` tab for both, disk spool and Lake datasets, define the Datatype as `"Cribl Search _raw Data"`. This will ensure the data passed in the `_raw` field is parsed. 
+
+Note: this may not work with Lakehouse.
+
 ## Test Query to find 10 slowest traces
 ```k
 dataset="k8s_disk_spool" resource.attributes["service.name"]="frontend" name="POST /api/checkout"
