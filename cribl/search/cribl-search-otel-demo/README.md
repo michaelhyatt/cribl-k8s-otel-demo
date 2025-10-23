@@ -16,7 +16,7 @@ Before you begin, ensure that you have met the following requirements:
 ## Todo list
 
 add Otel DA : dashboard and macro for DA dataset
-add K8s dashboard and datatype
+add K8s dashboard and datatype. solve the k8s event breaker at edge level
 
 
 
