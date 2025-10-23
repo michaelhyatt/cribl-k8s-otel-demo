@@ -1,0 +1,3 @@
+oteldemo_K8s_logs:
+  lib: custom
+  minRawLength: 256
