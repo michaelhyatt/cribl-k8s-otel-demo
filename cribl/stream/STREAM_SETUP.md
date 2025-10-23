@@ -520,3 +520,10 @@ Use the following JSON to install the routes
 ## Commit and deploy, test
 * Test the data flowing through sources. You may need to deploy Edge and `otel-demo` first.
 * Test the destinations are available. You may need to deploy the Elastic stack first.
+
+ ## for k8s sources
+  * install the [k8s pack](https://packs.cribl.io/packs/cribl-kubernetes). it contains the http source on port 11200:
+  * Change the variable C.vars['k8s_http_port'] to  10200 In pack->Knowledge->variables
+  * configure the variables within the pack for the k8s datasets : 
+  * DO set those datasets : k8s_logs, k8s_metrics, K8s_events
+
