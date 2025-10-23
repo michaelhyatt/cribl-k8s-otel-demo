@@ -133,7 +133,7 @@ helm upgrade -i ngrok-operator ngrok/ngrok-operator \
   --create-namespace \
   --set credentials.apiKey=${NGROK_API_KEY} \
   --set credentials.authtoken=${NGROK_AUTHTOKEN}
-kubectl apply -f ngrok/ngrok-manifest.yaml
+
 
 
 # Wait for the deployments to be ready
@@ -141,13 +141,17 @@ echo "Waiting for 'kibana' deployment..."
 wait_for_deployment elastic kibana-kb 900
 echo "Waiting for 'cribl-edge' daemonset..."
 wait_for_daemonset cribl cribl-edge 900
+
 echo "Waiting for 'cribl-worker' deployment..."
+
 wait_for_deployment cribl cribl-worker-logstream-workergroup 900
 echo "Waiting for 'opentelemetry-demo' deployment..."
 wait_for_deployment otel-demo opentelemetry-demo-kafka 900    
 
 echo "Waiting for 'ngrok' deployment..."
 wait_for_deployment ngrok-ingress-controller ngrok-operator-agent 900
+#Apply the ngrok manifest
+kubectl apply -f ngrok/ngrok-manifest.yaml
 echo "All deployments are ready!"
 
 
