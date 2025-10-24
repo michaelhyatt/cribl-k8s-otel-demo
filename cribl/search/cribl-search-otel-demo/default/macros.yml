@@ -1,0 +1,54 @@
+replayURL:
+  lib: custom
+  replacement: '"https://xx.ngrok-free.dev"'
+  createdBy: simon Duchene
+  modified: 1760711067760
+  created: 1760710847610
+slow_traces_p99:
+  lib: custom
+  replacement: >
+    dataset="otel_traces" resource.attributes["service.name"]="frontend"
+    name="POST /api/checkout"
+
+    // add duration field calculated from start and end times
+
+    | extend duration = (end_time_unix_nano - start_time_unix_nano) / 1000000000 
+
+    // aggregate by trace_id
+
+    | summarize  _time=findlatest(_time), duration=max(duration) by trace_id 
+
+    // only the slow traces, above p99. If lookup doesnt exist : use 0.5 seconds as a threshold
+
+    |extend dataset="otel_traces" |lookup pack(cribl).otel_threshold on dataset
+
+    |extend threshold=iif(isnotnull(p99),p99,0.5)
+
+    |where duration>threshold
+  createdBy: simon Duchene
+  modified: 1761040999975
+  created: 1761040999975
+one_average_trace:
+  lib: custom
+  replacement: >-
+    dataset="otel_traces" resource.attributes["service.name"]="frontend"
+    name="POST /api/checkout"
+
+    // add duration field calculated from start and end times
+
+    | extend duration = (end_time_unix_nano - start_time_unix_nano) / 1000000000 
+
+    // aggregate by trace_id
+
+    | summarize  _time=findlatest(_time), duration=max(duration) by trace_id 
+
+    // only the slow traces, above p99. If lookup doesnt exist : use 0.5 seconds as a threshold
+
+    |extend dataset="otel_traces" |lookup pack(cribl).otel_threshold on dataset
+
+    |extend threshold=iif(isnotnull(average),average,0.05)
+
+    |where duration<threshold |limit 1
+  createdBy: simon Duchene
+  modified: 1761042848265
+  created: 1761042848265

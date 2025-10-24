@@ -1,0 +1,100 @@
+otel_hourly_treshold_export:
+  name: otel_hourly treshold_export
+  isPrivate: false
+  query: >-
+    dataset="otel_traces" resource.attributes["service.name"]="frontend"
+    name="POST /api/checkout"
+
+    // add duration field calculated from start and end times
+
+    | extend duration = (end_time_unix_nano - start_time_unix_nano) / 1000000000 
+
+    // aggregate by trace_id
+
+    | summarize  duration=max(duration) by trace_id 
+
+    // calculate most important stats
+
+    | summarize average=round(avg(duration),3), stdev=round(stdev(duration),3), p95=round(percentile(duration,95),3), p99=round(percentile(duration,99),3), max=round(max(duration),3)
+
+    //add static
+
+    |extend dataset="otel_traces",  static_threshold=0.5, custom_threshold_avg5stdev=round(average+5*stdev,3)
+
+    //export to lookup
+
+    | export mode=overwrite to lookup otel_threshold tee=true
+  earliest: -1h
+  latest: now
+  sampleRate: 1
+  schedule:
+    enabled: true
+    cronSchedule: 0 * * * *
+    tz: UTC
+    keepLastN: 2
+    emptyNotifications: {}
+    emptyAdvanced: {}
+    notifications:
+      disabled: true
+  user: oidc|CriblCorpOkta|00uqbwsz1bzTYiOhK4x7
+  displayUsername: simon Duchene
+send_relevant_traces_and_logs_to_O11Y_tool_slow_transactions:
+  name: send relevant traces and logs to O11Y tool - slow transactions
+  isPrivate: false
+  chartConfig:
+    shouldApplyUserChartSettings: false
+  query: >-
+    //list every slow traces
+
+    let mytraces= ${slow_traces_p99}|project trace_id;
+
+    //show every logs and traces for those traces
+
+    dataset="otel_traces" OR dataset="otel_logs" | join kind=inner mytraces on trace_id 
+
+    //send to elastic
+
+    | send tee=true ${replayURL}
+  earliest: -5m
+  latest: now
+  sampleRate: 1
+  schedule:
+    enabled: true
+    cronSchedule: "*/5 * * * *"
+    tz: UTC
+    keepLastN: 2
+    emptyNotifications: {}
+    emptyAdvanced: {}
+    notifications:
+      disabled: true
+  user: oidc|CriblCorpOkta|00uqbwsz1bzTYiOhK4x7
+  displayUsername: simon Duchene
+send_one_average_trace_per_10_minutes:
+  name: send_one_average_trace_per_10 minutes
+  description: sending one average trace to elastic as a baseline every 10 minutes
+  isPrivate: false
+  query: >-
+    //list every slow traces
+
+    let mytraces= ${one_average_trace}|project trace_id;
+
+    //show every logs and traces for those traces
+
+    dataset="otel_traces" OR dataset="otel_logs" | join kind=inner mytraces on trace_id 
+
+    //send to elastic
+
+    | send tee=true ${replayURL}
+  earliest: -10m
+  latest: now
+  schedule:
+    enabled: true
+    cronSchedule: "*/10 * * * *"
+    tz: UTC
+    keepLastN: 2
+    emptyNotifications: {}
+    emptyAdvanced: {}
+    notifications:
+      disabled: true
+  user: oidc|CriblCorpOkta|00uqbwsz1bzTYiOhK4x7
+  displayUsername: simon Duchene

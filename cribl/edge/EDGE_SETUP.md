@@ -144,3 +144,105 @@ Accept all the defaults
 ## Commit and deploy, test
 * Test the sources receiving data. You may need to deploy the `otel-demo` app first.
 * Test the destinations are available. You may need to deploy the Stream worker first.
+
+
+
+ ## for k8s sources 
+ create a HTTP input on port 10200
+ and link the k8s sources to this destination
+ ``` json
+ {
+  "id": "http",
+  "systemFields": [
+    "cribl_pipe"
+  ],
+  "streamtags": [],
+  "loadBalanced": true,
+  "tls": {
+    "disabled": true
+  },
+  "tokenTTLMinutes": 60,
+  "excludeFields": [
+    "__kube_*",
+    "__metadata",
+    "__winEvent"
+  ],
+  "compression": "gzip",
+  "concurrency": 5,
+  "maxPayloadSizeKB": 4096,
+  "maxPayloadEvents": 0,
+  "rejectUnauthorized": true,
+  "timeoutSec": 30,
+  "flushPeriodSec": 1,
+  "failedRequestLoggingMode": "none",
+  "safeHeaders": [],
+  "responseRetrySettings": [
+    {
+      "httpStatus": 401,
+      "initialBackoff": 30000,
+      "backoffRate": 2,
+      "maxBackoff": 180000
+    },
+    {
+      "httpStatus": 408,
+      "initialBackoff": 30000,
+      "backoffRate": 2,
+      "maxBackoff": 180000
+    },
+    {
+      "httpStatus": 429,
+      "initialBackoff": 30000,
+      "backoffRate": 2,
+      "maxBackoff": 180000
+    },
+    {
+      "httpStatus": 500,
+      "initialBackoff": 30000,
+      "backoffRate": 2,
+      "maxBackoff": 180000
+    },
+    {
+      "httpStatus": 502,
+      "initialBackoff": 30000,
+      "backoffRate": 2,
+      "maxBackoff": 180000
+    },
+    {
+      "httpStatus": 503,
+      "initialBackoff": 30000,
+      "backoffRate": 2,
+      "maxBackoff": 180000
+    },
+    {
+      "httpStatus": 504,
+      "initialBackoff": 30000,
+      "backoffRate": 2,
+      "maxBackoff": 180000
+    },
+    {
+      "httpStatus": 509,
+      "initialBackoff": 30000,
+      "backoffRate": 2,
+      "maxBackoff": 180000
+    }
+  ],
+  "timeoutRetrySettings": {
+    "timeoutRetry": true,
+    "initialBackoff": 1000,
+    "backoffRate": 2,
+    "maxBackoff": 10000
+  },
+  "responseHonorRetryAfterHeader": true,
+  "onBackpressure": "drop",
+  "excludeSelf": false,
+  "urls": [
+    {
+      "weight": 1,
+      "url": "http://cribl-worker-logstream-workergroup:10200"
+    }
+  ],
+  "dnsResolvePeriodSec": 600,
+  "loadBalanceStatsPeriodSec": 300,
+  "type": "cribl_http"
+}
+```

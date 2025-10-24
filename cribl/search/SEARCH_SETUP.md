@@ -1,5 +1,5 @@
 # Set up Cribl Search
-## Dataset setup
+## Edge Disk Spool dataset setup
 * Name: `k8s_disk_spool`
 * Fleets to query: `otel-demo-k8s-fleet`
 * Path: `$CRIBL_SPOOL_DIR/out/disk_spool/${output_id}/${__earliest:%s}_${__latest:%s}`
@@ -26,9 +26,6 @@ dataset="k8s_disk_spool" resource.attributes["service.name"]="frontend" name="PO
 ```
 
 ## Install dashboards from the pack
-This [pack](./Otel_demo_dashboards_0.0.1.crbl) can be uploaded to Search to create the dashboards to show traces from Lake and k8s Edge DaemonSet disk spools.
-Update your replay URL in 2 dashboards two right hand panels each, the dashboard queries (under Interaction tab). Mine look like this:
-```
-dataset="k8s_disk_spool" trace_id="$value$"
-| send tee=true "https://silkworm-shining-instantly.ngrok-free.app"
-```
+This [pack](./cribl-k8s-otel-demo.crbl) can be uploaded to Search to create the dashboards to show traces from Lake and k8s Edge DaemonSet disk spools.
+
+Refer to [the pack README instructions](./cribl-search-otel-demo/README.md) for the Search pack setup
