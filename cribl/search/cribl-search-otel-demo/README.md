@@ -12,6 +12,10 @@ Before you begin, ensure that you have met the following requirements:
 * Change the macros *replayURL* within this pack : replace with your own ngrok URL, with double quotes : it should look like : "https://xxx.ngrok-free.dev"
 * Make sure the dataset used are otel_logs, otel_metrics [per the doc](https://github.com/michaelhyatt/cribl-k8s-otel-demo/tree/main)
 * For k8s logs : assign the datatype *oteldemo_K8s_logs* to the k8s dataset (should be k8s_logs and k8s_metrics)
+* Once you receive Otel logs and traces in your dataset : run the threshold builder (in saved searches) : *otel_hourly_treshold_export* 
+
+At this point the dashboard *Send only the slow tra…sed sampling analyzer* should show a 99% reduction
+
 
 ## Todo list
 
