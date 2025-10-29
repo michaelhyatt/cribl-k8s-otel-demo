@@ -164,15 +164,10 @@ resource "criblio_source" "in_k8s_cribl_tcp" {
 resource "criblio_pack" "cribl_opentelemetry_pack" {
     id            = "cribl-opentelemetry-pack"
     group_id      = criblio_group.k8s_stream_worker_group.id
-    description   = "Cribl OpenTelemetry Pack"
     source        = "https://packs.cribl.io/dl/cribl-opentelemetry/0.1.0/cribl-opentelemetry-0.1.0.crbl"
-    display_name  = "cribl-opentelemetry-pack" 
-    version       = "0.1.0"
 }
 
-output "pack_details" {
-  value = criblio_pack.cribl_opentelemetry_pack
-}
+
 
 
 # Commit and deploy the configuration
