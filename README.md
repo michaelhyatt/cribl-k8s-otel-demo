@@ -12,8 +12,11 @@
 ## Local setup
 The Cribl.Cloud part of the setup only needs to be done once for the Search dashboards, Lake datasets, Edge fleet and Stream Worker Group.
 * [Create a `kind` k8s cluster](./kind/SETUP_KIND.md)
-* [Deploy Cribl Stream components](./cribl/stream/STREAM_SETUP.md). [Lake](./cribl/lake/LAKE_SETUP.md) instructions included in Stream.
-* [Deploy Cribl Edge components](./cribl/edge/EDGE_SETUP.md)
+
+* Manually deploy Cribl components. Alternatively, [use the terraform script](./terraform/cribl-cloud/SETUP_CRIBL_CLOUD_TERRAFORM.md) for fully automated deployment of Cribl Cloud components.
+    * [Deploy Cribl Stream components](./cribl/stream/STREAM_SETUP.md). [Lake](./cribl/lake/LAKE_SETUP.md) instructions included in Stream.
+    * [Deploy Cribl Edge components](./cribl/edge/EDGE_SETUP.md)
+    * [Deploy Cribl Search pack](./cribl/search/SEARCH_SETUP.md)
 * [Deploy the Elastic stack](./elastic/ELASTIC_SETUP.md)
 * [Deploy the `otel-demo` app](./otel-demo/APP_SETUP.md)
 * [To support Search replay, deploy the `ngrok` reverse tunnel](./ngrok/NGROK_SETUP.md)
