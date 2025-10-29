@@ -4,7 +4,6 @@ variable "fleet_name" {
 
 # Create an Edge Fleet group
 resource "criblio_group" "k8s_edge_fleet" {
-  estimated_ingest_rate = 1024
   id                    = var.fleet_name
   is_fleet              = true
   name                  = var.fleet_name

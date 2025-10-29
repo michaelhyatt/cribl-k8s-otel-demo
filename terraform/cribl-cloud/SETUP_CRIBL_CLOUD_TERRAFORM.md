@@ -3,6 +3,14 @@
 ## Prerequisites
 It obviously needs Terraform ;)
 
+## IMPORTANT: Cribl Lake datasets creation
+Don't run the file `lake.tf.dont_run` through Terraform, create the lake datasets manually. The reason is that destroying the datasets will not delete them, only mark them for deletion and they can't be recreated with `terraform apply` until they are fully deleted.
+
+Manually create the following datasets in Cribl Cloud Lake before running the terraform script:
+* otel_demo_otel_traces
+* otel_demo_otel_metrics
+* otel_demo_otel_logs
+
 ### Install terraform
 ```
 brew tap hashicorp/tap
@@ -23,6 +31,9 @@ export CRIBL_WORKSPACE_ID="your-workspace-id"
 
 # Optional: specify cloud domain (defaults to cribl.cloud)
 export CRIBL_CLOUD_DOMAIN="cribl.cloud"
+
+# Generate lake bucket name
+export TF_VAR_lake_bucket_name="lake-${CRIBL_WORKSPACE_ID}-${CRIBL_ORGANIZATION_ID}"
 
 # Edge settings
 export TF_VAR_fleet_name=otel-demo-k8s-fleet
