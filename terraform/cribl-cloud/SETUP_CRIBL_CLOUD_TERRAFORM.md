@@ -46,3 +46,16 @@ export TF_VAR_worker_group_name=otel-demo-k8s-wg
 terraform init
 ```
 
+## Deploy
+```bash
+terraform apply -auto-approve
+```
+
+## Destroy 
+```bash
+terraform destroy -auto-approve
+```
+
+## Known issues
+* When running the `destroy` phase, terraform fails with the following error. The solution is to open the routes and delete all the non-default routes manually, then re-running the `destroy` again.
+    * Error: `"Cannot delete output since it is being referenced...`

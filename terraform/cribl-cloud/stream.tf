@@ -95,8 +95,6 @@ resource "criblio_destination" "otel_data_router" {
       ]
     }
 
-    depends_on = [ criblio_destination.otel_logs_lake_dataset, criblio_destination.otel_metrics_lake_dataset, criblio_destination.otel_traces_lake_dataset ]
-
   lifecycle {
     create_before_destroy = true
   }
@@ -216,16 +214,23 @@ resource "criblio_pipeline" "metrics_to_elastic_pipeline" {
                id = "comment"
                filter = "true"
                conf = {
-                    comment = "\"Invoke the OTel to metrics pack\""
+                    comment = jsonencode("Invoke the OTel to metrics pack")
                } 
             },
             {
                 id = "chain"
                 filter = "true"
                 conf = {
-                    processor = "\"pack:cribl-opentelemetry-pack\""
+                    processor = jsonencode("pack:cribl-opentelemetry-pack")
                 }
                 description = "Invoke the Cribl OpenTelemetry pack"
+            },            
+            {
+               id = "comment"
+               filter = "true"
+               conf = {
+                    comment = jsonencode("Reduce the granularity of metrics by aggregating them")
+               } 
             }
         ]
     }
@@ -245,7 +250,8 @@ resource "criblio_routes" "routing_table" {
             pipeline = "passthru"
             description = "Send logs, metrics and traces to Lake"
             filter = "__otlp.type"
-            output = "\"otel-data-router\""
+            enable_output_expression = true
+            output_expression = jsonencode("otel-data-router")
             destination = "router:otel-data-router"
         },        
         {
@@ -255,7 +261,8 @@ resource "criblio_routes" "routing_table" {
             pipeline = "passthru"
             description = "Send everything to Elastic"
             filter = "__otlp.type"
-            output = "\"elastic-otel\""
+            enable_output_expression = true
+            output_expression = jsonencode("elastic-otel")
             destination = "open_telemetry:elastic-otel"
         },           
         {
@@ -265,13 +272,12 @@ resource "criblio_routes" "routing_table" {
             pipeline = "devnull"
             description = ""
             filter = "true"
-            output = "\"devnull\""
             destination = "devnull:devnull"
         }
     ]
 
 
-    depends_on = [ criblio_destination.elastic-otel, criblio_destination.otel_data_router ]
+    # depends_on = [ criblio_destination.elastic-otel, criblio_destination.otel_data_router ]
 
 }
 
