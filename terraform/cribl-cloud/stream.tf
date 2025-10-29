@@ -120,12 +120,12 @@ resource "criblio_destination" "elastic-prometheus" {
 }
 
 # Create OTel destination
-resource "criblio_destination" "elastic_otel" {
-    id          = "elastic_otel"
+resource "criblio_destination" "elastic-otel" {
+    id          = "elastic-otel"
     group_id    = criblio_group.k8s_stream_worker_group.id
 
     output_open_telemetry = {
-      id                = "elastic_otel"
+      id                = "elastic-otel"
       type              = "open_telemetry"
       protocol          = "grpc"
       version           = "1.3.1"
@@ -157,13 +157,13 @@ resource "criblio_source" "in_k8s_cribl_http" {
         }
         connections = [ 
             {
-                output = "elastic_otel"
+                output = "elastic-otel"
             }
         ]
         disabled        = false
     }
 
-    depends_on = [ criblio_destination.elastic_otel ]
+    depends_on = [ criblio_destination.elastic-otel ]
 
 }
 
@@ -201,6 +201,7 @@ resource "criblio_routes" "routing_table" {
             description = "Send logs, metrics and traces to Lake"
             filter = "__otlp.type"
             output = "\"otel-data-router\""
+            destination = "router:otel-data-router"
         },        
         {
             name = "Send everything to Elastic"
@@ -209,7 +210,8 @@ resource "criblio_routes" "routing_table" {
             pipeline = "passthru"
             description = "Send everything to Elastic"
             filter = "__otlp.type"
-            output = "\"elastic_otel\""
+            output = "\"elastic-otel\""
+            destination = "open_telemetry:elastic-otel"
         },           
         {
             name = "Default"
@@ -219,15 +221,13 @@ resource "criblio_routes" "routing_table" {
             description = ""
             filter = "true"
             output = "\"devnull\""
+            destination = "devnull:devnull"
         }
     ]
 
 
-    depends_on = [ criblio_destination.elastic_otel, criblio_destination.otel_data_router ]
-
-    lifecycle {
-        create_before_destroy = true
-    }
+    depends_on = [ criblio_destination.elastic-otel, criblio_destination.otel_data_router ]
+    
 }
 
 
