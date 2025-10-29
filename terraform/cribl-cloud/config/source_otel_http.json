@@ -1,0 +1,44 @@
+{
+  "id": "otel-http",
+  "disabled": false,
+  "sendToRoutes": false,
+  "pqEnabled": false,
+  "streamtags": [],
+  "host": "0.0.0.0",
+  "port": 4318,
+  "tls": {
+    "disabled": true,
+    "requestCert": false
+  },
+  "maxActiveReq": 256,
+  "maxRequestsPerSocket": 0,
+  "requestTimeout": 0,
+  "socketTimeout": 0,
+  "keepAliveTimeout": 15,
+  "enableHealthCheck": false,
+  "ipAllowlistRegex": "/.*/",
+  "ipDenylistRegex": "/^$/",
+  "protocol": "http",
+  "extractSpans": true,
+  "extractMetrics": true,
+  "otlpVersion": "1.3.1",
+  "authType": "none",
+  "extractLogs": true,
+  "authHeaderExpr": "`Bearer ${token}`",
+  "connections": [
+    {
+      "output": "cribl-tcp",
+      "pipeline": "passthru"
+    },
+    {
+      "output": "otel-spool",
+      "pipeline": "passthru"
+    }
+  ],
+  "maxActiveCxn": 1000,
+  "metadata": [],
+  "oauthHeaders": [],
+  "oauthParams": [],
+  "tokenTimeoutSecs": 3600,
+  "type": "open_telemetry"
+}
