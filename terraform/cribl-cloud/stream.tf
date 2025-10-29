@@ -188,6 +188,41 @@ resource "criblio_pack" "cribl_opentelemetry_pack" {
     source        = "https://packs.cribl.io/dl/cribl-opentelemetry/0.1.0/cribl-opentelemetry-0.1.0.crbl"
 }
 
+# Fix the filtering in the opentelemetry pack routes
+resource "criblio_pack_routes" "my_packroutes" {
+  group_id = criblio_group.k8s_stream_worker_group.id
+  pack     = criblio_pack.cribl_opentelemetry_pack.id
+  routes = [
+    {
+      name     = "traces_to_metrics"
+      filter = "true"
+      pipeline = "traces_to_metrics"
+      description = "CHANGED: This will convert OTEL payloads into RED (Rate, Error, Duration) metrics"
+    }
+  ]
+}
+
+# Create metrics-to-elastic pipeline from inline JSON
+resource "criblio_pipeline" "metrics_to_elastic_pipeline" {
+    id       = "metrics_to_elastic_pipeline"
+    group_id = criblio_group.k8s_stream_worker_group.id
+
+    conf = {
+        output = "default"
+        groups = {}
+        async_func_timeout = 1000
+        functions = [ 
+            {
+               id = "comment"
+               filter = "true"
+               conf = {
+                    comment = "\"Invoke the OTel to metrics pack\""
+               } 
+            } 
+        ]
+    }
+}
+
 # Create routing table
 resource "criblio_routes" "routing_table" {
 
@@ -227,7 +262,7 @@ resource "criblio_routes" "routing_table" {
 
 
     depends_on = [ criblio_destination.elastic-otel, criblio_destination.otel_data_router ]
-    
+
 }
 
 
