@@ -23,6 +23,12 @@ export CRIBL_WORKSPACE_ID="your-workspace-id"
 
 # Optional: specify cloud domain (defaults to cribl.cloud)
 export CRIBL_CLOUD_DOMAIN="cribl.cloud"
+
+# Edge settings
+export TF_VAR_fleet_name=otel-demo-k8s-fleet
+
+# Stream settings
+export TF_VAR_stream_worker_group=otel-demo-k8s-wg
 ```
 
 ### Init terraform
