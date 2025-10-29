@@ -9,9 +9,10 @@ resource "criblio_group" "k8s_stream_worker_group" {
   is_fleet              = false
   name                  = var.worker_group_name
   product               = "stream"
-  provisioned           = true
+  provisioned           = false
   on_prem               = true
   worker_remote_access = true
+
 }
 
 # Create Cribl Lake dataset for OTel traces
@@ -80,6 +81,8 @@ resource "criblio_destination" "otel_data_router" {
         }
       ]
     }
+
+    depends_on = [ criblio_destination.otel_logs_lake_dataset, criblio_destination.otel_metrics_lake_dataset, criblio_destination.otel_traces_lake_dataset ]
 }
 
 # Create Prometheus destination
@@ -112,4 +115,83 @@ resource "criblio_destination" "elastic-otel" {
         disabled = true
       }
     }
+}
+
+# Create a Cribl HTTP source routed to Elastic OTel
+resource "criblio_source" "in_k8s_cribl_http" {
+    id       = "in_k8s_cribl_http"
+    group_id = criblio_group.k8s_stream_worker_group.id
+
+        input_cribl_http = {
+        id              = "in_k8s_cribl_http"
+        type            = "cribl_http"
+        port            = 10200
+        send_to_routes  = false
+        tls             = {
+            disabled = true
+        }
+        connections = [ 
+            {
+                output = "elastic-otel"
+            }
+        ]
+        disabled        = false
+    }
+
+    depends_on = [ criblio_destination.elastic-otel ]
+
+    lifecycle {
+      create_before_destroy = true
+    }
+
+}
+
+# Create a Cribl TCP source sending data to routes
+resource "criblio_source" "in_k8s_cribl_tcp" {
+    id       = "in_k8s_cribl_tcp"
+    group_id = criblio_group.k8s_stream_worker_group.id
+
+    input_cribl_tcp = {
+        id              = "in_k8s_cribl_tcp"
+        type            = "cribl_tcp"
+        port            = 10300
+        send_to_routes  = true
+        disabled        = false
+    }
+}
+
+# Install cribl-opentelemetry pack
+resource "criblio_pack" "cribl_opentelemetry_pack" {
+    id            = "cribl-opentelemetry-pack"
+    group_id      = criblio_group.k8s_stream_worker_group.id
+    description   = "Cribl OpenTelemetry Pack"
+    source        = "https://packs.cribl.io/dl/cribl-opentelemetry/0.1.0/cribl-opentelemetry-0.1.0.crbl"
+    display_name  = "cribl-opentelemetry-pack" 
+    version       = "0.1.0"
+}
+
+output "pack_details" {
+  value = criblio_pack.cribl_opentelemetry_pack
+}
+
+
+# Commit and deploy the configuration
+data "criblio_config_version" "stream_configversion" {
+  id         = criblio_group.k8s_stream_worker_group.id
+  depends_on = [ criblio_commit.stream_commit ]
+}
+
+resource "criblio_commit" "stream_commit" {
+  effective = true
+  group     = criblio_group.k8s_stream_worker_group.id
+  message   = "Automated Stream configuration commit"
+
+  depends_on = [ criblio_source.in_k8s_cribl_http, criblio_source.in_k8s_cribl_tcp ]
+}
+
+resource "criblio_deploy" "stream_deploy" {
+  id      = criblio_group.k8s_stream_worker_group.id
+  version = data.criblio_config_version.stream_configversion.items[0]
+
+  depends_on = [ criblio_commit.stream_commit ]
 }
