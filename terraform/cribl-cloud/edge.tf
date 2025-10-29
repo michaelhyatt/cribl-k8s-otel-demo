@@ -1,5 +1,6 @@
 variable "fleet_name" {
   description = "Name of the Edge Fleet"
+  default = "otel-demo-k8s-fleet"
 }
 
 # Create an Edge Fleet group

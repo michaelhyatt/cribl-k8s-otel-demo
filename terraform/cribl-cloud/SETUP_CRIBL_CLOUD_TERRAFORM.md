@@ -29,17 +29,16 @@ export CRIBL_CLIENT_SECRET="your-client-secret"
 export CRIBL_ORGANIZATION_ID="your-organization-id"
 export CRIBL_WORKSPACE_ID="your-workspace-id"
 
-# Optional: specify cloud domain (defaults to cribl.cloud)
-export CRIBL_CLOUD_DOMAIN="cribl.cloud"
+# Optional: specify another cloud domain (defaults to cribl.cloud)
+export CRIBL_CLOUD_DOMAIN="cribl-staging.cloud"
 
-# Generate lake bucket name
-export TF_VAR_lake_bucket_name="lake-${CRIBL_WORKSPACE_ID}-${CRIBL_ORGANIZATION_ID}"
 
+## Direct Terraform variable setting
 # Edge settings
 export TF_VAR_fleet_name=otel-demo-k8s-fleet
 
 # Stream settings
-export TF_VAR_stream_worker_group=otel-demo-k8s-wg
+export TF_VAR_worker_group_name=otel-demo-k8s-wg
 ```
 
 ### Init terraform
