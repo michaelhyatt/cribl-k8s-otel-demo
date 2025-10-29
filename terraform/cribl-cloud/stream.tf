@@ -105,6 +105,8 @@ resource "criblio_destination" "elastic-otel" {
       type              = "open_telemetry"
       protocol          = "grpc"
       version           = "1.3.1"
+      otlp_version      = "1.3.1"
+      auth_type         = "none" 
       endpoint          = "apm.elastic.svc.cluster.local:8200"
       tls = {
         disabled = true
