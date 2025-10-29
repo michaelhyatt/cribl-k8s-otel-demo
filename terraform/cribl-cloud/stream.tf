@@ -218,9 +218,19 @@ resource "criblio_pipeline" "metrics_to_elastic_pipeline" {
                conf = {
                     comment = "\"Invoke the OTel to metrics pack\""
                } 
-            } 
+            },
+            {
+                id = "chain"
+                filter = "true"
+                conf = {
+                    processor = "\"pack:cribl-opentelemetry-pack\""
+                }
+                description = "Invoke the Cribl OpenTelemetry pack"
+            }
         ]
     }
+
+    depends_on = [ criblio_pack_routes.my_packroutes ]
 }
 
 # Create routing table
