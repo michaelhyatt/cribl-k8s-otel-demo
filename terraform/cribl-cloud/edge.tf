@@ -70,6 +70,10 @@ resource "criblio_source" "source_otel_grpc" {
   }
 
   depends_on = [ criblio_destination.destination_cribl_tcp, criblio_destination.destination_disk_spool_otel_spool ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Create HTTP OTel source
@@ -99,6 +103,10 @@ resource "criblio_source" "source_otel_http" {
   }
 
   depends_on = [ criblio_destination.destination_cribl_tcp, criblio_destination.destination_disk_spool_otel_spool ]
+  
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 

@@ -25,7 +25,11 @@ resource "criblio_destination" "otel_traces_lake_dataset" {
         type        = "cribl_lake"
         dest_path   = "otel_demo_otel_traces"
     }
-  
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
 }
 
 # Create Cribl Lake dataset for OTel metrics
@@ -38,6 +42,11 @@ resource "criblio_destination" "otel_metrics_lake_dataset" {
         type        = "cribl_lake"
         dest_path   = "otel_demo_otel_metrics"
     }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
 }
 
 # Create Cribl Lake dataset for OTel logs
@@ -50,6 +59,10 @@ resource "criblio_destination" "otel_logs_lake_dataset" {
         type        = "cribl_lake"
         dest_path   = "otel_demo_otel_logs"
     }
+  lifecycle {
+    create_before_destroy = true
+  }
+  
 }
 
 # Create a Router destination to route OTel data to appropriate Lake datasets
@@ -83,6 +96,10 @@ resource "criblio_destination" "otel_data_router" {
     }
 
     depends_on = [ criblio_destination.otel_logs_lake_dataset, criblio_destination.otel_metrics_lake_dataset, criblio_destination.otel_traces_lake_dataset ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Create Prometheus destination
@@ -96,15 +113,19 @@ resource "criblio_destination" "elastic-prometheus" {
       url       = "http://prometheus.elastic.svc.cluster.local:9201"
       auth_type = "none"
     }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Create OTel destination
-resource "criblio_destination" "elastic-otel" {
-    id          = "elastic-otel"
+resource "criblio_destination" "elastic_otel" {
+    id          = "elastic_otel"
     group_id    = criblio_group.k8s_stream_worker_group.id
 
     output_open_telemetry = {
-      id                = "elastic-otel"
+      id                = "elastic_otel"
       type              = "open_telemetry"
       protocol          = "grpc"
       version           = "1.3.1"
@@ -115,6 +136,10 @@ resource "criblio_destination" "elastic-otel" {
         disabled = true
       }
     }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Create a Cribl HTTP source routed to Elastic OTel
@@ -132,17 +157,13 @@ resource "criblio_source" "in_k8s_cribl_http" {
         }
         connections = [ 
             {
-                output = "elastic-otel"
+                output = "elastic_otel"
             }
         ]
         disabled        = false
     }
 
-    depends_on = [ criblio_destination.elastic-otel ]
-
-    lifecycle {
-      create_before_destroy = true
-    }
+    depends_on = [ criblio_destination.elastic_otel ]
 
 }
 
@@ -167,7 +188,47 @@ resource "criblio_pack" "cribl_opentelemetry_pack" {
     source        = "https://packs.cribl.io/dl/cribl-opentelemetry/0.1.0/cribl-opentelemetry-0.1.0.crbl"
 }
 
+# Create routing table
+resource "criblio_routes" "routing_table" {
 
+    group_id = criblio_group.k8s_stream_worker_group.id
+    routes = [
+        {
+            name = "Send logs, metrics and traces to Lake"
+            final = false
+            disabled = false
+            pipeline = "passthru"
+            description = "Send logs, metrics and traces to Lake"
+            filter = "__otlp.type"
+            output = "\"otel-data-router\""
+        },        
+        {
+            name = "Send everything to Elastic"
+            final = true
+            disabled = true
+            pipeline = "passthru"
+            description = "Send everything to Elastic"
+            filter = "__otlp.type"
+            output = "\"elastic_otel\""
+        },           
+        {
+            name = "Default"
+            final = true
+            disabled = false
+            pipeline = "devnull"
+            description = ""
+            filter = "true"
+            output = "\"devnull\""
+        }
+    ]
+
+
+    depends_on = [ criblio_destination.elastic_otel, criblio_destination.otel_data_router ]
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
 
 
 # Commit and deploy the configuration
@@ -181,7 +242,7 @@ resource "criblio_commit" "stream_commit" {
   group     = criblio_group.k8s_stream_worker_group.id
   message   = "Automated Stream configuration commit"
 
-  depends_on = [ criblio_source.in_k8s_cribl_http, criblio_source.in_k8s_cribl_tcp ]
+  depends_on = [ criblio_routes.routing_table ]
 }
 
 resource "criblio_deploy" "stream_deploy" {
