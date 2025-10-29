@@ -98,6 +98,9 @@ resource "criblio_destination" "otel_data_router" {
   lifecycle {
     create_before_destroy = true
   }
+
+    depends_on = [ criblio_destination.otel_traces_lake_dataset, criblio_destination.otel_metrics_lake_dataset, criblio_destination.otel_logs_lake_dataset ]
+
 }
 
 # Create Prometheus destination
@@ -250,9 +253,7 @@ resource "criblio_routes" "routing_table" {
             pipeline = "passthru"
             description = "Send logs, metrics and traces to Lake"
             filter = "__otlp.type"
-            enable_output_expression = true
-            output_expression = jsonencode("otel-data-router")
-            destination = "router:otel-data-router"
+            output = jsonencode("otel-data-router")
         },        
         {
             name = "Send everything to Elastic"
@@ -261,9 +262,7 @@ resource "criblio_routes" "routing_table" {
             pipeline = "passthru"
             description = "Send everything to Elastic"
             filter = "__otlp.type"
-            enable_output_expression = true
-            output_expression = jsonencode("elastic-otel")
-            destination = "open_telemetry:elastic-otel"
+            output = jsonencode("elastic-otel")
         },           
         {
             name = "Default"
@@ -272,12 +271,12 @@ resource "criblio_routes" "routing_table" {
             pipeline = "devnull"
             description = ""
             filter = "true"
-            destination = "devnull:devnull"
+            output = jsonencode("devnull")
         }
     ]
 
 
-    # depends_on = [ criblio_destination.elastic-otel, criblio_destination.otel_data_router ]
+    depends_on = [ criblio_destination.elastic-otel, criblio_destination.otel_data_router ]
 
 }
 
