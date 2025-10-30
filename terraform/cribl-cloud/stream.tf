@@ -23,7 +23,7 @@ resource "criblio_destination" "otel_traces_lake_dataset" {
     output_cribl_lake = {
         id          = "otel-traces"
         type        = "cribl_lake"
-        dest_path   = "otel_demo_otel_traces"
+        dest_path   = criblio_cribl_lake_dataset.otel_traces.id
     }
 
   lifecycle {
@@ -40,7 +40,7 @@ resource "criblio_destination" "otel_metrics_lake_dataset" {
     output_cribl_lake = {
         id          = "otel-metrics"
         type        = "cribl_lake"
-        dest_path   = "otel_demo_otel_metrics"
+        dest_path   = criblio_cribl_lake_dataset.otel_metrics.id
     }
 
   lifecycle {
@@ -57,7 +57,7 @@ resource "criblio_destination" "otel_logs_lake_dataset" {
     output_cribl_lake = {
         id          = "otel-logs"
         type        = "cribl_lake"
-        dest_path   = "otel_demo_otel_logs"
+        dest_path   = criblio_cribl_lake_dataset.otel_logs.id
     }
   lifecycle {
     create_before_destroy = true
