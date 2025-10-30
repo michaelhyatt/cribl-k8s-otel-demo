@@ -52,5 +52,5 @@ terraform destroy -auto-approve
 ```
 
 ## Known issues
-* When running the `destroy` phase, terraform fails with the following error. The solution is to open the routes and delete all the non-default routes manually, then re-running the `destroy` again.
-    * Error: `"Cannot delete output since it is being referenced...`
+* Destroying doesn't work on k8s_disk_spool Search dataset. Delete it manually.
+* Uploading pack using terraform doesn't work yet
