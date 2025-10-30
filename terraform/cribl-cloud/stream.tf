@@ -308,7 +308,16 @@ resource "criblio_routes" "routing_table" {
             description = "Send logs, metrics and traces to Lake"
             filter = "__otlp.type"
             output = jsonencode("otel-data-router")
-        },        
+        },
+        {
+            name = "Create RED metrics from OTel traces"
+            final = false
+            disabled = false
+            pipeline = criblio_pipeline.metrics_to_elastic_pipeline.id
+            description = "Send logs, metrics and traces to Lake"
+            filter = "__otlp.type"
+            output = jsonencode("elastic-prometheus")
+        },          
         {
             name = "Send everything to Elastic"
             final = true
@@ -330,7 +339,7 @@ resource "criblio_routes" "routing_table" {
     ]
 
 
-    depends_on = [ criblio_destination.elastic-otel, criblio_destination.otel_data_router ]
+    depends_on = [ criblio_destination.elastic-otel, criblio_destination.otel_data_router, criblio_destination.elastic-prometheus ]
 
 }
 
