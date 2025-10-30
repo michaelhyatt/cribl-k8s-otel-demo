@@ -57,7 +57,7 @@ resource "criblio_source" "source_otel_grpc" {
     version         = "1.3.1"
     extract_logs    = true
     extract_metrics = true
-    extract_traces  = true
+    extract_spans   = true
     send_to_routes  = false
     connections = [ 
         {
@@ -90,7 +90,7 @@ resource "criblio_source" "source_otel_http" {
     port            = 4318
     extract_logs    = true
     extract_metrics = true
-    extract_traces  = true
+    extract_spans   = true
     send_to_routes  = false
     connections = [ 
         {
