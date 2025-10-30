@@ -1,4 +1,4 @@
-# Doesn't work yet
+# Doesn't work yet - upload the pack manually and update the macros for Lake and replay URL
 
 # resource "criblio_pack" "search_pack" {
 #     id              = "cribl-k8s-otel-demo"
@@ -8,3 +8,5 @@
 #     version         = "0.0.2"
 #     description     = "OTel demo Search pack with dashboards"
 # }
+
+# C
