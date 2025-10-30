@@ -207,7 +207,7 @@ resource "criblio_pack_routes" "my_packroutes" {
 resource "criblio_pipeline" "metrics_to_elastic_pipeline" {
     id       = "metrics_to_elastic_pipeline"
     group_id = criblio_group.k8s_stream_worker_group.id
-
+    
     conf = {
         output = "default"
         groups = {}
@@ -234,6 +234,60 @@ resource "criblio_pipeline" "metrics_to_elastic_pipeline" {
                conf = {
                     comment = jsonencode("Reduce the granularity of metrics by aggregating them")
                } 
+            },
+            {
+                id = "aggregation"
+                filter = "true"
+                conf = {
+                    passthrough = false
+                    preserveGroupBys = false
+                    sufficientStatsOnly = false
+                    metricsMode = true
+                    timeWindow = jsonencode("60s")
+                    cumulative = false
+                    flushOnInputClose = true                    
+                    aggregations = jsonencode([
+                        "sum(duration).as(duration)",
+                        "sum(http_2xx).as(http_2xx)",
+                        "sum(http_3xx).as(http_3xx)",
+                        "sum(http_4xx).as(http_4xx)",
+                        "sum(http_5xx).as(http_5xx)",
+                        "sum(otel_status_0).as(otel_status_0)",
+                        "sum(otel_status_1).as(otel_status_1)",
+                        "sum(otel_status_2).as(otel_status_2)",
+                        "sum(requests_error).as(requests_error)",
+                        "sum(requests_total).as(requests_total)",
+                        "max(start_time_unix_nano).as(max_starttime)"
+                    ])
+                    groupbys = jsonencode([
+                        "service",
+                        "resource_url",
+                        "status_code"
+                    ])
+                }
+                description = "Aggregate metrics before sending them"
+            },
+            {
+               id = "comment"
+               filter = "true"
+               conf = {
+                    comment = jsonencode("Fix the timestamp to max_time of the aggregated spans")
+               } 
+            },
+            {
+                id = "auto_timestamp"
+                filter = "true"
+                conf = {
+                    srcField = jsonencode("max_starttime")
+                    dstField = jsonencode("_time")
+                    defaultTimezone = jsonencode("UTC")
+                    timeExpression = jsonencode("time.getTime() / 1000")
+                    offset = 0
+                    maxLen = 150
+                    defaultTime = jsonencode("now")
+                    latestDateAllowed = jsonencode("+1week")
+                    earliestDateAllowed = jsonencode("-420weeks")
+                }
             }
         ]
     }
