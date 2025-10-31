@@ -24,15 +24,24 @@ export CRIBL_WORKSPACE_ID="your-workspace-id"
 # Optional: specify another cloud domain (defaults to cribl.cloud)
 export CRIBL_CLOUD_DOMAIN="cribl-staging.cloud"
 
+# Other variables that are used to set up Helm charts
+export CRIBL_STREAM_VERSION=4.14.0
+export CRIBL_STREAM_WORKER_GROUP=otel-demo-k8s-wg
+export CRIBL_STREAM_TOKEN="stream enrollment token from worker enrollment dialogue"
+export CRIBL_STREAM_LEADER_URL="Leader URL from worker enrollment dialogue"
+export CRIBL_EDGE_VERSION=${CRIBL_STREAM_VERSION}
+export CRIBL_EDGE_FLEET=otel-demo-k8s-fleet
+export CRIBL_EDGE_LEADER_URL=${CRIBL_STREAM_LEADER_URL}
+export CRIBL_EDGE_TOKEN=${CRIBL_STREAM_TOKEN}
 
 ## Direct Terraform variable setting
 # Edge settings
-export TF_VAR_fleet_name=otel-demo-k8s-fleet
+export TF_VAR_fleet_name=${CRIBL_EDGE_FLEET}
 
 # Stream settings
-export TF_VAR_worker_group_name=otel-demo-k8s-wg
+export TF_VAR_worker_group_name=${CRIBL_STREAM_WORKER_GROUP}
 
-# Lake bucket name setting 
+# Lake bucket name setting
 export TF_VAR_lake_bucket_name="lake-${CRIBL_WORKSPACE_ID}-${CRIBL_ORGANIZATION_ID}"
 ```
 
