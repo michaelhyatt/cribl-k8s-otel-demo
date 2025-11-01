@@ -23,10 +23,10 @@ export NGROK_API_KEY=[API_KEY]
 ## Install the ngrok Kubernetes Operator
 ```bash
 helm install ngrok-operator ngrok/ngrok-operator \
-  --namespace ngrok-ingress-controller \
+  --namespace ngrok-operator \
   --create-namespace \
-  --set credentials.apiKey=${NGROK_API_KEY} \
-  --set credentials.authtoken=${NGROK_AUTHTOKEN}
+  --set credentials.apiKey=$NGROK_API_KEY \
+  --set credentials.authtoken=$NGROK_AUTHTOKEN
 ```
 
 ## Update the domain name in `ngrok/ngrok-manifest.yaml`
