@@ -10,7 +10,6 @@ resource "criblio_pack" "search_pack" {
 }
 
 # Create the k8s_disk_spool dataset
-# Destroy doesn't delete it
 resource "criblio_search_dataset" "k8s_disk_spool" {
     edge_dataset = {
         id = "k8s_disk_spool"
