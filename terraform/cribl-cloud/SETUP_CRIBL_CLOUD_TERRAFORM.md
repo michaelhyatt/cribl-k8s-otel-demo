@@ -62,4 +62,4 @@ terraform destroy -auto-approve
 
 ## Known issues
 * Destroying doesn't always work on k8s_disk_spool Search dataset. Delete it manually, if needed. It looks like a UI quirk, since the query shows it has been deleted:
-* `dataset="$vt_datasets" id="k8s_edge_spool" | count` returns 1 after `apply` and 0 after `destroy`
+  * `dataset="$vt_datasets" id="k8s_edge_spool" | count` returns 1 after `apply` and 0 after `destroy`
