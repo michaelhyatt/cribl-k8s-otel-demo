@@ -45,6 +45,12 @@ export TF_VAR_worker_group_name=${CRIBL_STREAM_WORKER_GROUP}
 export TF_VAR_lake_bucket_name="lake-${CRIBL_WORKSPACE_ID}-${CRIBL_ORGANIZATION_ID}"
 ```
 
+### Lakehouse creation
+Lakehouse is awesome if you want to accelerate the Lake dashboards, but it may take a long time to set up (up to 20-30 mins at times). So, the creation of the Lakehouse is optional and is disabled by default. To enable it, set the following variable before running `terraform apply -auto-aprove`:
+```bash
+export TF_VAR_create_lakehouse=true
+```
+
 ### Init terraform
 ```bash
 terraform init
@@ -63,3 +69,4 @@ terraform destroy -auto-approve
 ## Known issues
 * Destroying doesn't always work on k8s_disk_spool Search dataset. Delete it manually, if needed. It looks like a UI quirk, since the query shows it has been deleted:
   * `dataset="$vt_datasets" id="k8s_edge_spool" | count` returns 1 after `apply` and 0 after `destroy`
+* Lakehouse creation may time out. Either re-run the `apply`, or 
