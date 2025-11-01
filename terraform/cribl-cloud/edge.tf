@@ -24,6 +24,36 @@ resource "criblio_destination" "destination_disk_spool_otel_spool" {
   }
 }
 
+resource "criblio_destination" "k8s_events" {
+  id       = "k8s-events-spool"
+  group_id = criblio_group.k8s_edge_fleet.id
+
+  output_disk_spool = {
+        id = "k8s-events-spool"
+        type = "disk_spool"
+  }
+}
+
+resource "criblio_destination" "k8s_logs" {
+  id       = "k8s-logs-spool"
+  group_id = criblio_group.k8s_edge_fleet.id
+
+  output_disk_spool = {
+        id = "k8s-logs-spool"
+        type = "disk_spool"
+  }
+}
+
+resource "criblio_destination" "k8s_metrics" {
+  id       = "k8s-metrics-spool"
+  group_id = criblio_group.k8s_edge_fleet.id
+
+  output_disk_spool = {
+        id = "k8s-metrics-spool"
+        type = "disk_spool"
+  }
+}
+
 # Create Cribl TCP destination
 resource "criblio_destination" "destination_cribl_tcp" {
     id       = "cribl-tcp"
@@ -41,6 +71,61 @@ resource "criblio_destination" "destination_cribl_tcp" {
                 port = 10300
             }
         ]
+    }
+}
+
+# Update in_kube_* sources connecting it to the disk spools
+resource "criblio_source" "in_kube_events" {
+    id      = "in_kube_events-${random_string.random.result}"
+    group_id = criblio_group.k8s_edge_fleet.id
+
+    input_kube_events = {
+        id      = "in_kube_events-${random_string.random.result}"
+        type    = "kube_events"
+        send_to_routes = false
+        connections = [ {
+            output = criblio_destination.k8s_events.id
+        } ]
+    }
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
+resource "criblio_source" "in_kube_logs" {
+    id      = "in_kube_logs-${random_string.random.result}"
+    group_id = criblio_group.k8s_edge_fleet.id
+
+    input_kube_logs = {
+        id      = "in_kube_logs-${random_string.random.result}"
+        type    = "kube_logs"
+        send_to_routes = false
+        connections = [ {
+            output = criblio_destination.k8s_logs.id
+        } ]
+    }
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
+resource "criblio_source" "in_kube_metrics" {
+    id      = "in_kube_metrics-${random_string.random.result}"
+    group_id = criblio_group.k8s_edge_fleet.id
+
+    input_kube_metrics = {
+        id      = "in_kube_metrics-${random_string.random.result}"
+        type    = "kube_metrics"
+        send_to_routes = false
+        connections = [ {
+            output = criblio_destination.k8s_metrics.id
+        } ]
+    }
+
+    lifecycle {
+        create_before_destroy = true
     }
 }
 
