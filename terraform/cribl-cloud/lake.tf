@@ -22,6 +22,7 @@ resource "criblio_cribl_lake_dataset" "otel_metrics" {
     retention_period_in_days = 7
     bucket_name = var.lake_bucket_name
 
+    depends_on = [ criblio_cribl_lake_dataset.otel_traces ]
 }
 
 resource "criblio_cribl_lake_dataset" "otel_logs" {
@@ -30,5 +31,6 @@ resource "criblio_cribl_lake_dataset" "otel_logs" {
     retention_period_in_days = 7
     bucket_name = var.lake_bucket_name
 
+    depends_on = [ criblio_cribl_lake_dataset.otel_metrics ]
 }
 
