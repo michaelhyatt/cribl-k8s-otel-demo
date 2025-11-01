@@ -13,7 +13,7 @@ resource "criblio_pack" "search_pack" {
 # Destroy doesn't delete it
 resource "criblio_search_dataset" "k8s_disk_spool" {
     edge_dataset = {
-        id = "k8s_edge_spool"
+        id = "k8s_disk_spool"
         type = "cribl_edge"
         path = "$CRIBL_SPOOL_DIR/out/disk_spool/$${output_id}/$${__earliest:%s}_$${__latest:%s}/"
         filter = "!source.endsWith('.tmp')"
