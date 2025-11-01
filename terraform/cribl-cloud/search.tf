@@ -5,6 +5,8 @@ resource "criblio_pack" "search_pack" {
     filename        = "${abspath(path.module)}/cribl-k8s-otel-demo_0-0-3.crbl"
     version         = "0.0.3"
     description     = "OTel demo Search pack with dashboards"
+
+    depends_on = [ criblio_search_dataset.k8s_disk_spool ]
 }
 
 # Create the k8s_disk_spool dataset
