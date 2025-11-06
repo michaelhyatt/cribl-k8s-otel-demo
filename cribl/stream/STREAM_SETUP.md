@@ -436,8 +436,10 @@ Create the `metrics-to-elastic` pipeline and copy the following JSON.
 </details>
 
 ## Create pipeline for k8s logs and events (3 pipelines)
+
 <details>
-<summary>1: edge logs from k8s<summary>
+<summary>1: edge logs from k8s</summary>
+
 ```json
 {
   "id": "cribl_k8s_edge_logs",
@@ -564,8 +566,11 @@ Create the `metrics-to-elastic` pipeline and copy the following JSON.
   }
 }
 ```
-</details><details>
+</details>
+
+<details>
 <summary>2: K8s_logs</summary> 
+
 ```json
 {
   "id": "cribl_k8s_logs",
@@ -700,9 +705,11 @@ Create the `metrics-to-elastic` pipeline and copy the following JSON.
   }
 }
 ```
+</details>
 
-</details><details>
+<details>
 <summary>3:k8s events : </summary>
+
 ```json
 {
   "id": "cribl_k8s_events",
