@@ -305,7 +305,7 @@ This source will be connected to OTel destination in QuickConnect.
 {
   "id": "in_cribl_http",
   "disabled": false,
-  "sendToRoutes": false,
+  "sendToRoutes": true,
   "pqEnabled": false,
   "streamtags": [],
   "host": "0.0.0.0",
@@ -435,6 +435,439 @@ Create the `metrics-to-elastic` pipeline and copy the following JSON.
 ```
 </details>
 
+## Create pipeline for k8s logs and events (3 pipelines)
+1: edge logs from k8s
+```json
+{
+  "id": "cribl_k8s_edge_logs",
+  "conf": {
+    "output": "default",
+    "streamtags": [],
+    "groups": {},
+    "asyncFuncTimeout": 1000,
+    "functions": [
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "Parse JSON K8S logs sent from the Cribl Edge container"
+        }
+      },
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "For additional details, see this pack's README under Pack Settings."
+        }
+      },
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "Author: Cribl Packs Team"
+        }
+      },
+      {
+        "id": "serde",
+        "filter": "_raw.startsWith(\"{\")",
+        "conf": {
+          "mode": "extract",
+          "type": "json",
+          "srcField": "_raw",
+          "fieldFilterExpr": "value !== '' && value !== null"
+        },
+        "description": "Parse the JSON _raw field"
+      },
+      {
+        "id": "auto_timestamp",
+        "filter": "true",
+        "conf": {
+          "srcField": "time",
+          "dstField": "_time",
+          "defaultTimezone": "local",
+          "timeExpression": "time.getTime() / 1000",
+          "offset": 0,
+          "maxLen": 150,
+          "defaultTime": "now",
+          "latestDateAllowed": "+1week",
+          "earliestDateAllowed": "-420weeks"
+        },
+        "description": "Use the time field as the timestamp"
+      },
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "[Optional - disable if unneeded] Call a pipeline containing custom filter logic"
+        }
+      },
+      {
+        "id": "chain",
+        "filter": "true",
+        "disabled": true,
+        "conf": {
+          "processor": "cribl_k8s_edge_logs_filter"
+        },
+        "description": "Call a pipeline containing custom filter logic"
+      },
+      {
+        "id": "serialize",
+        "filter": "true",
+        "conf": {
+          "type": "json",
+          "dstField": "_raw",
+          "fields": [
+            "!_*",
+            "!cribl*",
+            "!source",
+            "!sourcetype",
+            "!kube_*",
+            "!host",
+            "*"
+          ]
+        },
+        "description": "Serialize the processed log into JSON format"
+      },
+      {
+        "id": "eval",
+        "filter": "true",
+        "conf": {
+          "keep": [
+            "_*",
+            "cribl_*",
+            "source",
+            "sourcetype",
+            "host",
+            "kube_*"
+          ],
+          "remove": [
+            "*"
+          ],
+          "add": [
+            {
+              "disabled": false,
+              "value": "C.vars.k8s_edge_logs_sourcetype || 'k8s:edge:logs'",
+              "name": "sourcetype"
+            },
+            {
+              "disabled": false,
+              "value": "C.vars.k8s_edge_logs_source || 'edge-k8s-logs-' + kube_namespace + '-' + kube_pod",
+              "name": "source"
+            }
+          ]
+        },
+        "description": "Remove unneeded fields and set common fields"
+      }
+    ],
+    "description": "Process JSON logs sent from Edge nodes monitoring K8S"
+  }
+}
+```
+2: K8s_logs 
+```json
+{
+  "id": "cribl_k8s_logs",
+  "conf": {
+    "output": "default",
+    "streamtags": [],
+    "groups": {},
+    "asyncFuncTimeout": 1000,
+    "functions": [
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "Parse JSON and non-JSON K8S logs"
+        }
+      },
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "For additional details, see this pack's README under Pack Settings."
+        }
+      },
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "Author: Cribl Packs Team"
+        }
+      },
+      {
+        "id": "grok",
+        "filter": "_raw.match(/\\s+\\w+\\s+\\w+\\s+{/)",
+        "disabled": true,
+        "conf": {
+          "patternList": [],
+          "source": "_raw",
+          "pattern": "%{WORD:log_level}%{SPACE}%{WORD:log_type}%{SPACE}%{GREEDYDATA:_json}"
+        }
+      },
+      {
+        "id": "regex_extract",
+        "filter": "_raw.match(/\\s+\\w+\\s+\\w+\\s+{/)",
+        "disabled": false,
+        "conf": {
+          "source": "_raw",
+          "iterations": 100,
+          "overwrite": true,
+          "regex": "/\\s+(?<log_level>\\w+)\\s+(?<log_type>\\w+)\\s+(?<_json>.+)/"
+        },
+        "description": "Parse log_level+type+JSON"
+      },
+      {
+        "id": "chain",
+        "filter": "true",
+        "disabled": true,
+        "conf": {
+          "processor": "cribl_k8s_logs_filter"
+        },
+        "description": "Call a pipeline containing custom filter logic"
+      },
+      {
+        "id": "eval",
+        "filter": "_json==null",
+        "disabled": false,
+        "conf": {
+          "add": [
+            {
+              "disabled": false,
+              "name": "message",
+              "value": "_raw"
+            }
+          ]
+        },
+        "description": "Set the message field to _raw for non-JSON logs"
+      },
+      {
+        "id": "serialize",
+        "filter": "true",
+        "disabled": false,
+        "conf": {
+          "type": "json",
+          "dstField": "_raw",
+          "fields": [
+            "!_*",
+            "!cribl*",
+            "!source",
+            "!sourcetype",
+            "!host",
+            "!kube_*",
+            "log_*",
+            "*"
+          ]
+        },
+        "description": "Serialize the processed log into JSON format"
+      },
+      {
+        "id": "eval",
+        "filter": "true",
+        "disabled": false,
+        "conf": {
+          "keep": [
+            "cribl_*",
+            "source",
+            "sourcetype",
+            "host",
+            "log_*",
+            "kube_*",
+            "_time",
+            "_raw"
+          ],
+          "remove": [
+            "*"
+          ],
+          "add": [
+            {
+              "disabled": false,
+              "value": "C.vars.k8s_logs_sourcetype || 'k8s:logs'",
+              "name": "sourcetype"
+            },
+            {
+              "disabled": false,
+              "value": "C.vars.k8s_logs_source || 'edge-k8s-logs-' + kube_namespace + '-' + kube_pod",
+              "name": "source"
+            }
+          ]
+        },
+        "description": "Remove unneeded fields and set common fields"
+      }
+    ],
+    "description": ""
+  }
+}
+```
+3:k8s events : 
+```json
+{
+  "id": "cribl_k8s_events",
+  "conf": {
+    "output": "default",
+    "streamtags": [],
+    "groups": {},
+    "asyncFuncTimeout": 1000,
+    "functions": [
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "Process JSON K8S Events sent from the Cribl Edge container"
+        }
+      },
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "For additional details, see this pack's README under Pack Settings."
+        }
+      },
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "Author: Cribl Packs Team"
+        }
+      },
+      {
+        "id": "serde",
+        "filter": "true",
+        "disabled": false,
+        "conf": {
+          "mode": "extract",
+          "type": "json",
+          "srcField": "object",
+          "remove": [
+            "_raw"
+          ],
+          "fieldFilterExpr": "value !== '' && value !== null"
+        },
+        "description": "Parse the object JSON field"
+      },
+      {
+        "id": "auto_timestamp",
+        "filter": "true",
+        "conf": {
+          "srcField": "metadata.creationTimestamp",
+          "dstField": "_time",
+          "defaultTimezone": "UTC",
+          "timeExpression": "time.getTime() / 1000",
+          "offset": 0,
+          "maxLen": 150,
+          "defaultTime": "now",
+          "latestDateAllowed": "+1week",
+          "earliestDateAllowed": "-420weeks"
+        },
+        "description": "Use metadata.creationTimestamp as _time"
+      },
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "Note: Edge K8S events do not have a value for involvedObject but metadata.name has the same value"
+        }
+      },
+      {
+        "id": "eval",
+        "filter": "true",
+        "conf": {
+          "add": [
+            {
+              "disabled": false,
+              "name": "involvedObject",
+              "value": "metadata.name"
+            },
+            {
+              "disabled": false,
+              "name": "kube_namespace",
+              "value": "regarding.name"
+            }
+          ]
+        },
+        "description": "Assign involvedObject and namespace fields"
+      },
+      {
+        "id": "comment",
+        "filter": "true",
+        "conf": {
+          "comment": "[Optional - disable if unneeded] Call a pipeline containing custom filter logic"
+        }
+      },
+      {
+        "id": "chain",
+        "filter": "true",
+        "disabled": true,
+        "conf": {
+          "processor": "cribl_k8s_events_filter"
+        },
+        "description": "Call a pipeline containing custom filter logic"
+      },
+      {
+        "id": "serialize",
+        "filter": "true",
+        "disabled": false,
+        "conf": {
+          "type": "json",
+          "dstField": "_raw",
+          "fields": [
+            "!_*",
+            "!cribl*",
+            "!source",
+            "!sourcetype",
+            "!host",
+            "!type",
+            "!involvedObject",
+            "!reason",
+            "!kube_*",
+            "!object*",
+            "*"
+          ]
+        },
+        "description": "Serializes the JSON object into _raw"
+      },
+      {
+        "id": "eval",
+        "filter": "true",
+        "disabled": false,
+        "conf": {
+          "keep": [
+            "_raw",
+            "cribl_*",
+            "_time",
+            "source",
+            "sourcetype",
+            "host",
+            "reason",
+            "involvedObject",
+            "type",
+            "message",
+            "kube_*"
+          ],
+          "remove": [
+            "*"
+          ],
+          "add": [
+            {
+              "disabled": false,
+              "value": "C.vars.k8s_events_sourcetype || 'k8s:events'",
+              "name": "sourcetype"
+            },
+            {
+              "disabled": false,
+              "name": "source",
+              "value": "C.vars.k8s_events_source || 'edge-k8s-events'"
+            }
+          ]
+        },
+        "description": "Removed unneeded fields and add common fields"
+      }
+    ],
+    "description": ""
+  }
+}
+```
+
+
 ## Update the routes
 Use the following JSON to install the routes
 <details>
@@ -443,20 +876,57 @@ Use the following JSON to install the routes
 ```json
 {
   "id": "default",
-  "groups": {},
-  "comments": [],
   "routes": [
     {
-      "id": "3LhVQf",
-      "name": "Drop non-OTel traffic",
+      "id": "PQqbqi",
+      "name": "Replay",
       "final": true,
       "disabled": false,
       "pipeline": "passthru",
       "description": "",
-      "clones": [],
       "enableOutputExpression": false,
-      "filter": "!__otlp.type",
-      "output": "devnull"
+      "filter": "__inputId=='cribl_http:in_cribl_http' && cribl_search_id",
+      "clones": [],
+      "output": "elastic-otel"
+    },
+    {
+      "id": "T7i2rY",
+      "name": "K8s_EDGE_to_lake",
+      "final": true,
+      "disabled": false,
+      "pipeline": "cribl_k8s_edge_logs",
+      "description": "",
+      "enableOutputExpression": false,
+      "filter": "__inputId=='cribl_http:in_cribl_http'  &&  kube_container=='edge'",
+      "clones": [],
+      "output": "k8s_router_to_lake",
+      "groupId": "yNkwet"
+    },
+    {
+      "id": "3LhVQf",
+      "name": "K8s_logs_to_lake",
+      "final": true,
+      "disabled": false,
+      "pipeline": "cribl_k8s_logs",
+      "description": "",
+      "enableOutputExpression": false,
+      "filter": "__inputId=='cribl_http:in_cribl_http'  && kube_namespace!=null",
+      "clones": [],
+      "output": "k8s_router_to_lake",
+      "groupId": "yNkwet"
+    },
+    {
+      "id": "clUbDl",
+      "name": "K8s_events_to_lake",
+      "final": true,
+      "disabled": false,
+      "pipeline": "cribl_k8s_events",
+      "description": "",
+      "enableOutputExpression": false,
+      "filter": "__inputId=='cribl_http:in_cribl_http'  && _raw.includes('events.k8s.io')",
+      "clones": [],
+      "output": "k8s_router_to_lake",
+      "groupId": "yNkwet"
     },
     {
       "id": "atAndy",
@@ -465,11 +935,11 @@ Use the following JSON to install the routes
       "disabled": false,
       "pipeline": "passthru",
       "description": "",
+      "enableOutputExpression": false,
+      "filter": "__otlp.type",
       "clones": [
         {}
       ],
-      "enableOutputExpression": false,
-      "filter": "true",
       "output": "otel-router-to-lake"
     },
     {
@@ -479,11 +949,11 @@ Use the following JSON to install the routes
       "disabled": false,
       "pipeline": "metrics-to-elastic",
       "description": "",
+      "enableOutputExpression": false,
+      "filter": "__otlp.type == 'traces'",
       "clones": [
         {}
       ],
-      "enableOutputExpression": false,
-      "filter": "__otlp.type == 'traces'",
       "output": "elastic-prometheus"
     },
     {
@@ -493,11 +963,11 @@ Use the following JSON to install the routes
       "disabled": true,
       "pipeline": "passthru",
       "description": "",
+      "enableOutputExpression": false,
+      "filter": "true",
       "clones": [
         {}
       ],
-      "enableOutputExpression": false,
-      "filter": "true",
       "output": "elastic-otel"
     },
     {
@@ -507,12 +977,19 @@ Use the following JSON to install the routes
       "disabled": false,
       "pipeline": "devnull",
       "description": "",
-      "clones": [],
       "enableOutputExpression": false,
       "filter": "true",
+      "clones": [],
       "output": "devnull"
     }
-  ]
+  ],
+  "comments": [],
+  "groups": {
+    "yNkwet": {
+      "name": "K8s logs and events",
+      "index": 1
+    }
+  }
 }
 ```
 </details>
