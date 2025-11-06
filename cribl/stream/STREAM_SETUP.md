@@ -436,6 +436,7 @@ Create the `metrics-to-elastic` pipeline and copy the following JSON.
 </details>
 
 ## Create pipeline for k8s logs and events (3 pipelines)
+<details>
 <summary>1: edge logs from k8s<summary>
 ```json
 {
@@ -563,6 +564,7 @@ Create the `metrics-to-elastic` pipeline and copy the following JSON.
   }
 }
 ```
+</details><details>
 <summary>2: K8s_logs</summary> 
 ```json
 {
@@ -698,6 +700,8 @@ Create the `metrics-to-elastic` pipeline and copy the following JSON.
   }
 }
 ```
+
+</details><details>
 <summary>3:k8s events : </summary>
 ```json
 {
@@ -866,7 +870,7 @@ Create the `metrics-to-elastic` pipeline and copy the following JSON.
   }
 }
 ```
-
+</details>
 
 ## Update the routes
 Use the following JSON to install the routes
