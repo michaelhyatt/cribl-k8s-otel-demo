@@ -2180,7 +2180,7 @@ data:
       listeners:
         - address:
             socket_address:
-              address: 0.0.0.0
+              address: "${ENVOY_ADDR}"
               port_value: ${ENVOY_PORT}
           filter_chains:
             - filters:
@@ -2199,7 +2199,7 @@ data:
                             envoy_grpc:
                               cluster_name: opentelemetry_collector_grpc
                             timeout: 0.250s
-                          service_name: frontend-proxy
+                          service_name: ${OTEL_SERVICE_NAME}
                           resource_detectors:
                             - name: envoy.tracers.opentelemetry.resource_detectors.environment
                               typed_config:
@@ -2211,19 +2211,89 @@ data:
                           domains:
                             - "*"
                           routes:
-                            - match: { prefix: "/loadgen" }
+                            - match: { path: "/loadgen" }
+                              redirect: { path_redirect: "/loadgen/" }
+                            - match: { prefix: "/loadgen/" }
                               route: { cluster: loadgen, prefix_rewrite: "/" }
                             - match: { prefix: "/otlp-http/" }
                               route: { cluster: opentelemetry_collector_http, prefix_rewrite: "/" }
                             - match: { prefix: "/images/" }
-                              route: { cluster: imageprovider, prefix_rewrite: "/" }
-                            - match: { prefix: "/" }
+                              route: { cluster: image-provider, prefix_rewrite: "/" }
+                            - match: { prefix: "/flagservice/" }
+                              route: { cluster: flagservice, prefix_rewrite: "/", timeout: 0s }
+                            - match: { prefix: "/feature" }
+                              route:
+                                cluster: flagd-ui
+                                prefix_rewrite: "/"
+                                upgrade_configs:
+                                  - upgrade_type: websocket
+                            - match: { prefix: "/" }  # Default/catch-all route - keep last since prefix:"/" matches everything
                               route: { cluster: frontend }
                     http_filters:
+                      - name: envoy.filters.http.fault
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.fault.v3.HTTPFault
+                          max_active_faults: 100
+                          delay:
+                            header_delay: {}
+                            percentage:
+                              numerator: 100
                       - name: envoy.filters.http.router
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
-
+                    access_log:
+                      - name: envoy.access_loggers.open_telemetry
+                        typed_config:
+                          "@type": "type.googleapis.com/envoy.extensions.access_loggers.open_telemetry.v3.OpenTelemetryAccessLogConfig"
+                          common_config:
+                            log_name: "otel_envoy_access_log"
+                            grpc_service:
+                              envoy_grpc:
+                                cluster_name: opentelemetry_collector_grpc
+                            transport_api_version: "V3"
+                          body:
+                            # yamllint disable-line rule:line-length
+                            string_value: "[%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %RESPONSE_CODE_DETAILS% %CONNECTION_TERMINATION_DETAILS% \"%UPSTREAM_TRANSPORT_FAILURE_REASON%\" %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\" %UPSTREAM_CLUSTER% %UPSTREAM_LOCAL_ADDRESS% %DOWNSTREAM_LOCAL_ADDRESS% %DOWNSTREAM_REMOTE_ADDRESS% %REQUESTED_SERVER_NAME% %ROUTE_NAME%\n"
+                          resource_attributes:
+                            values:
+                              - key: "service.name"
+                                value:
+                                  string_value: ${OTEL_SERVICE_NAME}
+                          attributes:
+                            values:
+                              - key: "destination.address"
+                                value:
+                                  string_value: "%UPSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+                              - key: "event.name"
+                                value:
+                                  string_value: "proxy.access"
+                              - key: "server.address"
+                                value:
+                                  string_value: "%DOWNSTREAM_LOCAL_ADDRESS%"
+                              - key: "source.address"
+                                value:
+                                  string_value: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+                              - key: "upstream.cluster"
+                                value:
+                                  string_value: "%UPSTREAM_CLUSTER%"
+                              - key: "upstream.host"
+                                value:
+                                  string_value: "%UPSTREAM_HOST%"
+                              - key: "user_agent.original"
+                                value:
+                                  string_value: "%REQ(USER-AGENT)%"
+                              - key: "url.full"
+                                value:
+                                  string_value: "%REQ(:SCHEME)%://%REQ(:AUTHORITY)%%REQ(:PATH)%"
+                              - key: "url.path"
+                                value:
+                                  string_value: "%REQ(:PATH)%"
+                              - key: "url.query"
+                                value:
+                                  string_value: "%REQ(:QUERY)%"
+                              - key: "url.template"
+                                value:
+                                  string_value: "%ROUTE_NAME%"
       clusters:
         - name: opentelemetry_collector_grpc
           type: STRICT_DNS
@@ -2252,7 +2322,7 @@ data:
                   - endpoint:
                       address:
                         socket_address:
-                          address: ${OTEL_COLLECTOR_HOST}
+                          address: ${REAL_OTEL_COLLECTOR_HOST}
                           port_value: ${OTEL_COLLECTOR_PORT_HTTP}
         - name: frontend
           type: STRICT_DNS
@@ -2266,11 +2336,11 @@ data:
                         socket_address:
                           address: ${FRONTEND_HOST}
                           port_value: ${FRONTEND_PORT}
-        - name: imageprovider
+        - name: image-provider
           type: STRICT_DNS
           lb_policy: ROUND_ROBIN
           load_assignment:
-            cluster_name: imageprovider
+            cluster_name: image-provider
             endpoints:
               - lb_endpoints:
                   - endpoint:
@@ -2278,6 +2348,30 @@ data:
                         socket_address:
                           address: ${IMAGE_PROVIDER_HOST}
                           port_value: ${IMAGE_PROVIDER_PORT}
+        - name: flagservice
+          type: STRICT_DNS
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+            cluster_name: flagservice
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: ${FLAGD_HOST}
+                          port_value: ${FLAGD_PORT}
+        - name: flagd-ui
+          type: STRICT_DNS
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+            cluster_name: flagd-ui
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: ${FLAGD_UI_HOST}
+                          port_value: ${FLAGD_UI_PORT}
         - name: loadgen
           type: STRICT_DNS
           lb_policy: ROUND_ROBIN
@@ -2294,7 +2388,7 @@ data:
       address:
         socket_address:
           address: 0.0.0.0
-          port_value: 10000
+          port_value: ${ENVOY_ADMIN_PORT}
     layered_runtime:
       layers:
         - name: static_layer_0
@@ -2343,7 +2437,7 @@ spec:
           command: ["/bin/sh"]
           args:
             - "-c"
-            - "envsubst < /etc/envoy/envoy.tmpl.yaml > envoy.yaml && envoy -c envoy.yaml"
+            - "envsubst < /etc/envoy/envoy.tmpl.yaml>envoy.yaml && envoy -c envoy.yaml --log-level debug"
 
           volumeMounts:
             - name: envoy-config-template
@@ -2354,15 +2448,12 @@ spec:
             - containerPort: 8080
               name: service
           env:
-            - name: OTEL_SERVICE_NAME
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: metadata.labels['app.kubernetes.io/component']
             - name: OTEL_COLLECTOR_NAME
-              value: otel-collector
+              value: cribl-edge.cribl.svc.cluster.local
             - name: OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
               value: cumulative
+            - name: ENVOY_ADDR
+              value: 0.0.0.0
             - name: ENVOY_PORT
               value: "8080"
             - name: ENVOY_ADMIN_PORT
@@ -2372,31 +2463,27 @@ spec:
             - name: FLAGD_PORT
               value: "8013"
             - name: FLAGD_UI_HOST
-              value: flagd-ui
+              value: flagd
             - name: FLAGD_UI_PORT
               value: "4000"
             - name: FRONTEND_HOST
               value: frontend
             - name: FRONTEND_PORT
               value: "8080"
-            - name: GRAFANA_HOST
-              value: grafana
-            - name: GRAFANA_PORT
-              value: "80"
             - name: IMAGE_PROVIDER_HOST
               value: image-provider
             - name: IMAGE_PROVIDER_PORT
               value: "8081"
-            - name: JAEGER_HOST
-              value: jaeger-query
-            - name: JAEGER_UI_PORT
-              value: "16686"
             - name: LOCUST_WEB_HOST
               value: load-generator
             - name: LOCUST_WEB_PORT
               value: "8089"
+            - name: OTEL_SERVICE_NAME
+              value: frontend-envoy-proxy
+            - name: REAL_OTEL_COLLECTOR_HOST
+              value: otel-collector.otel-demo.svc.cluster.local              
             - name: OTEL_COLLECTOR_HOST
-              value: $(OTEL_COLLECTOR_NAME)
+              value: cribl-edge.cribl.svc.cluster.local
             - name: OTEL_COLLECTOR_PORT_GRPC
               value: "4317"
             - name: OTEL_COLLECTOR_PORT_HTTP
@@ -2414,3 +2501,241 @@ spec:
         - name: envoy-config-template
           configMap:
             name: envoy-config-template
+---
+# Source: opentelemetry-demo/charts/opentelemetry-collector/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: otel-collector
+  namespace: otel-demo
+  labels:
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/instance: opentelemetry-demo
+    app.kubernetes.io/version: "0.135.0"
+    app.kubernetes.io/part-of: opentelemetry-collector
+    app.kubernetes.io/component: standalone-collector
+---
+# Source: opentelemetry-demo/charts/opentelemetry-collector/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector
+  namespace: otel-demo
+  labels:
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/instance: opentelemetry-demo
+    app.kubernetes.io/version: "0.135.0"
+    app.kubernetes.io/part-of: opentelemetry-collector
+    app.kubernetes.io/component: standalone-collector
+data:
+  relay: |
+    exporters:
+      debug:
+        verbosity: detailed
+      otlp/grpc:
+        endpoint: cribl-edge.cribl.svc.cluster.local:4317
+        tls:
+          insecure: true
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133     
+    processors:
+      batch:
+        timeout: 1ms   # Minimum wait time
+        send_batch_size: 1
+        send_batch_max_size: 1      
+    receivers:
+      httpcheck/frontend-proxy:
+        targets:
+        - endpoint: http://frontend-proxy:8080
+      nginx:
+        collection_interval: 10s
+        endpoint: http://image-provider:8081/status
+      otlp:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:4317
+          http:
+            endpoint: ${env:MY_POD_IP}:4318
+            cors:
+              allowed_origins:
+                - "http://*"
+                - "https://*"        
+    service:
+      extensions:
+      - health_check
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/grpc, debug]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/grpc]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/grpc]
+      telemetry:
+        metrics:
+          level: detailed
+          readers:
+          - periodic:
+              exporter:
+                otlp:
+                  endpoint: cribl-edge.cribl.svc.cluster.local:4318
+                  protocol: http/protobuf
+              interval: 10000
+              timeout: 5000
+---
+# Source: opentelemetry-demo/charts/opentelemetry-collector/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: otel-collector
+  labels:
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/instance: opentelemetry-demo
+    app.kubernetes.io/version: "0.135.0"
+    app.kubernetes.io/part-of: opentelemetry-collector
+    app.kubernetes.io/component: standalone-collector
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "namespaces"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+---
+# Source: opentelemetry-demo/charts/opentelemetry-collector/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: otel-collector
+  labels:
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/instance: opentelemetry-demo
+    app.kubernetes.io/version: "0.135.0"
+    app.kubernetes.io/part-of: opentelemetry-collector
+    app.kubernetes.io/component: standalone-collector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: otel-collector
+subjects:
+- kind: ServiceAccount
+  name: otel-collector
+  namespace: otel-demo
+---
+# Source: opentelemetry-demo/charts/opentelemetry-collector/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: otel-demo
+  labels:
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/instance: opentelemetry-demo
+    app.kubernetes.io/version: "0.135.0"
+    app.kubernetes.io/part-of: opentelemetry-collector
+    app.kubernetes.io/component: standalone-collector
+    component: standalone-collector
+spec:
+  type: ClusterIP
+  ports:
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP      
+      appProtocol: grpc
+  selector:
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/instance: opentelemetry-demo
+    component: standalone-collector
+  internalTrafficPolicy: Cluster
+---
+# Source: opentelemetry-demo/charts/opentelemetry-collector/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: otel-demo
+  labels:
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/instance: opentelemetry-demo
+    app.kubernetes.io/version: "0.135.0"
+    app.kubernetes.io/part-of: opentelemetry-collector
+    app.kubernetes.io/component: standalone-collector
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opentelemetry-collector
+      app.kubernetes.io/instance: opentelemetry-demo
+      component: standalone-collector
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/config: b23c30f9b89a34910edbfdafc7072ff305d9e8bb93ca26ffaed9ac1a8872cefb
+        opentelemetry_community_demo: "true"
+        prometheus.io/scrape: "true"
+      labels:
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/instance: opentelemetry-demo
+        component: standalone-collector
+        
+    spec:
+      
+      serviceAccountName: otel-collector
+      automountServiceAccountToken: true
+      securityContext:
+        {}
+      containers:
+        - name: opentelemetry-collector
+          args:
+            - --config=/conf/relay.yaml
+            - --set=service.telemetry.logs.level=debug
+          securityContext:
+            {}
+          image: "otel/opentelemetry-collector-contrib:0.135.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+            - name: otlp-grpc
+              containerPort: 4317
+              protocol: TCP              
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: GOMEMLIMIT
+              value: "160MiB"
+          resources:
+            limits:
+              memory: 200Mi
+          volumeMounts:
+            - mountPath: /conf
+              name: opentelemetry-collector-configmap
+      volumes:
+        - name: opentelemetry-collector-configmap
+          configMap:
+            name: otel-collector
+            items:
+              - key: relay
+                path: relay.yaml
+      hostNetwork: false
