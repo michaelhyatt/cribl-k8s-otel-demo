@@ -13,7 +13,8 @@ Once the app is running, the Edge OTel sources and Stream TCP source should star
 ## Access the otel-demo app and loadgen UI
 To access the app and the loadgen, forward port 8080
 ```
-kubectl port-forward -n otel-demo svc/opentelemetry-demo-frontendproxy 8080:8080
+kubectl port-forward -n otel-demo svc/frontend-proxy 8080:8080
 ```
 * App: http://localhost:8080/
 * Loadgen: http://localhost:8080/loadgen/
+* Feature toggling to simulate failure scenarios: http://localhost8080/feature
