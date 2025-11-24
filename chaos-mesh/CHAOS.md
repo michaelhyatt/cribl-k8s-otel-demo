@@ -16,8 +16,12 @@ kubectl create ns chaos-mesh
 ### Install Chaos Mesh with dashboard:
 
 ```bash
-helm install chaos-mesh chaos-mesh/chaos-mesh -n chaos-mesh --set dashboard.create=true --set chaos-daemon.runtime=containerd
-
+helm install chaos-mesh chaos-mesh/chaos-mesh -n chaos-mesh \
+    --set dashboard.create=true \
+    --set chaosDaemon.runtime=containerd \
+    --set chaosDaemon.socketPath=/run/containerd/containerd.sock \
+    --version 2.8.0 \
+    --create-namespace
 ```
 
 Verify the Chaos Mesh components are running in the chaos-mesh namespace.
@@ -50,5 +54,5 @@ kubectl describe secrets account-cluster-manager-euzix
 Run the following command:
 
 ```bash
-kubectl get svc -n chaos-mesh chaos-dashboard -o jsonpath='http://{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port}'
+kubectl get svc -n chaos-mesh chaos-dashboard -o jsonpath='http://{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port} ; echo'
 ```
