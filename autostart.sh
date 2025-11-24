@@ -163,7 +163,7 @@ kubectl port-forward -n elastic svc/kibana-kb-http -n elastic 5601:5601 --addres
 PORT_FORWARD_PID1=$!
 
 echo "Port-forward started with PID $PORT_FORWARD_PID1."
-kubectl port-forward -n otel-demo svc/opentelemetry-demo-frontendproxy 8080:8080 &
+kubectl port-forward -n otel-demo svc/frontend-proxy 8080:8080 &
 PORT_FORWARD_PID2=$!
 echo "Port-forward started with PID $PORT_FORWARD_PID2."
 
