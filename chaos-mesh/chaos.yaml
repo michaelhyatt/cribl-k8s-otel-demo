@@ -1,0 +1,51 @@
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  namespace: default
+  name: account-cluster-manager-euzix
+
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: role-cluster-manager-euzix
+rules:
+- apiGroups: [""]
+  resources: ["pods", "namespaces"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["chaos-mesh.org"]
+  resources: [ "*" ]
+  verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bind-cluster-manager-euzix
+subjects:
+- kind: ServiceAccount
+  name: account-cluster-manager-euzix
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: role-cluster-manager-euzix
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chaos-dashboard
+  namespace: chaos-mesh
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"  
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/component: chaos-dashboard
+  ports:
+    - port: 2333
+      targetPort: 2333
+      protocol: TCP
+      name: web-ui
+---

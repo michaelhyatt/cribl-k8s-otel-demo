@@ -237,11 +237,11 @@ resource "aws_instance" "otel-demo-server" {
 
         "kubectl apply --namespace otel-demo -f otel-demo/opentelemetry-demo.yaml",
 
-        "kubectl wait deployment/opentelemetry-demo-frontendproxy -n otel-demo --for=create --timeout=10m",
-        "kubectl wait deployment/opentelemetry-demo-frontendproxy -n otel-demo --for=condition=Available=True --timeout=10m",
+        "kubectl wait deployment/frontend-proxy -n otel-demo --for=create --timeout=10m",
+        "kubectl wait deployment/frontend-proxy -n otel-demo --for=condition=Available=True --timeout=10m",
 
         <<EOT
-            kubectl patch deployment opentelemetry-demo-frontendproxy -n otel-demo --type='json' -p \
+            kubectl patch deployment frontend-proxy -n otel-demo --type='json' -p \
             '[{"op": "add", "path": "/spec/template/spec/containers/0/ports/0/hostPort", "value": 8080}]'
         EOT
         ,

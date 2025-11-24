@@ -55,7 +55,7 @@ resource "null_resource" "wait_for_app_hostname" {
 
   provisioner "local-exec" {
     command = <<EOT
-      while ! kubectl get service opentelemetry-demo-frontendproxy -n otel-demo -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' &> /dev/null; do
+      while ! kubectl get service frontend-proxy -n otel-demo -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' &> /dev/null; do
       sleep 30 
       done
     EOT
@@ -64,7 +64,7 @@ resource "null_resource" "wait_for_app_hostname" {
 
 data "kubernetes_service" "app_service" {
   metadata {
-    name      = "opentelemetry-demo-frontendproxy"
+    name      = "frontend-proxy"
     namespace = "otel-demo"
   }
   depends_on = [ null_resource.wait_for_app_hostname ]

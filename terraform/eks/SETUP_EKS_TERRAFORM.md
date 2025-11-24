@@ -39,7 +39,7 @@ kubectl get service cribl-worker-logstream-workergroup -n cribl -o jsonpath='{.s
 ### Get app and loadgen UI URL 
 Not a must, but nice to have for access to the app and loadgen (at /loadgen/)
 ```
-kubectl get service opentelemetry-demo-frontendproxy -n otel-demo -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' | awk '{print "http://"$0":8080"}'
+kubectl get service frontend-proxy -n otel-demo -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' | awk '{print "http://"$0":8080"}'
 ```
 
 ## Destroy
