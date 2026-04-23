@@ -138,6 +138,8 @@ resource "criblio_source" "source_otel_grpc" {
     id              = "otel-grpc"
     type            = "open_telemetry"
     protocol        = "grpc"
+    host            = "0.0.0.0"
+    port            = 4317
     otlp_version    = "1.3.1"
     version         = "1.3.1"
     extract_logs    = true
@@ -170,6 +172,7 @@ resource "criblio_source" "source_otel_http" {
     id              = "otel-http"
     type            = "open_telemetry"        
     protocol        = "http"
+    host            = "0.0.0.0"
     otlp_version    = "1.3.1"
     version         = "1.3.1"
     port            = 4318

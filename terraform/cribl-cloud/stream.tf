@@ -151,6 +151,7 @@ resource "criblio_source" "in_k8s_cribl_http" {
         input_cribl_http = {
         id              = "in_k8s_cribl_http"
         type            = "cribl_http"
+        host            = "0.0.0.0"
         port            = 10200
         send_to_routes  = false
         tls             = {
@@ -176,6 +177,7 @@ resource "criblio_source" "in_k8s_cribl_tcp" {
     input_cribl_tcp = {
         id              = "in_k8s_cribl_tcp"
         type            = "cribl_tcp"
+        host            = "0.0.0.0"
         port            = 10300
         send_to_routes  = true
         disabled        = false
