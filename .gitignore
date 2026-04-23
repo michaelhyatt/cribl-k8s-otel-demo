@@ -1,4 +1,5 @@
 myscript.sh
+myscript_cribl_cloud.sh
 .DS_Store
 terraform/*/myvars.tfvars
 terraform/*/terraform.tfvars
