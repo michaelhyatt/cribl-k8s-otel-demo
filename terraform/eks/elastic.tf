@@ -38,7 +38,7 @@ resource "null_resource" "provision_elastic_stack" {
 }
 
 resource "null_resource" "add_dashboard" {
-    depends_on = [ null_resource.wait_for_kibana_hostname ]
+    depends_on = [ null_resource.wait_for_kibana_hostname, null_resource.provision_elastic_stack ]
     
     provisioner "local-exec" {
         command = <<EOF

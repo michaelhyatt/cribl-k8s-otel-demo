@@ -76,7 +76,7 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    ami_type               = "AL2_x86_64"
+    ami_type               = "AL2023_x86_64_STANDARD"
     instance_types         = ["c5.xlarge"]
     vpc_security_group_ids = [aws_security_group.eks-sg.id]
     volume_size            = 50  
